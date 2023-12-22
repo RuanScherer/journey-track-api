@@ -55,16 +55,6 @@ func TestNewProject(t *testing.T) {
 			t.Error("should have token")
 		}
 	})
-
-	t.Run("owner should have project", func(t *testing.T) {
-		owner, _ := NewUser("owner@domain.com", "Owner", "pass1234")
-		owner.Verify(owner.VerificationToken)
-
-		project, _ := NewProject("my project", owner)
-		if owner.Projects[0].ID != project.ID {
-			t.Error("owner should have project")
-		}
-	})
 }
 
 func TestProjectChangeName(t *testing.T) {
@@ -94,6 +84,54 @@ func TestProjectChangeName(t *testing.T) {
 
 		if project.Name != "my other project" {
 			t.Error("should change name when provided name is valid")
+		}
+	})
+}
+
+func TestAddMember(t *testing.T) {
+	t.Run("should get error when provided user is invalid", func(t *testing.T) {
+		owner, _ := NewUser("owner@domain.com", "Owner", "pass1234")
+		owner.Verify(owner.VerificationToken)
+
+		project, _ := NewProject("my project", owner)
+
+		newMember, _ := NewUser("", "Jon Doe", "pass1234")
+		err := project.AddMember(newMember)
+
+		if err == nil {
+			t.Error("should get error when provided user is invalid")
+		}
+	})
+
+	t.Run("should get error when provided user is already a member of the project", func(t *testing.T) {
+		owner, _ := NewUser("owner@domain.com", "Owner", "pass1234")
+		owner.Verify(owner.VerificationToken)
+
+		project, _ := NewProject("my project", owner)
+
+		newMember, _ := NewUser("jondoe@test.com", "Jon Doe", "pass1234")
+		project.AddMember(newMember)
+
+		err := project.AddMember(newMember)
+		if err == nil {
+			t.Error("should get error when provided user is already a member of the project")
+		}
+	})
+
+	t.Run("should add member", func(t *testing.T) {
+		owner, _ := NewUser("owner@domain.com", "Owner", "pass1234")
+		owner.Verify(owner.VerificationToken)
+
+		project, _ := NewProject("my project", owner)
+
+		newMember, _ := NewUser("jondoe@test.com", "Jon Doe", "pass1234")
+		err := project.AddMember(newMember)
+		if err != nil {
+			t.Error("should add member")
+		}
+
+		if len(project.Members) != 2 {
+			t.Error("should add member to list of members")
 		}
 	})
 }

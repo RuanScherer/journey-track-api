@@ -216,30 +216,3 @@ func TestResetPassword(t *testing.T) {
 		}
 	})
 }
-
-func TestHasPendingInviteForProject(t *testing.T) {
-	t.Run("should return false when user has no pending invites for project", func(t *testing.T) {
-		user, _ := NewUser("example@domain.com", "Ruan", "12345678")
-
-		projectOwner, _ := NewUser("owner@domain.com", "Owner", "12345678")
-		projectOwner.Verify(projectOwner.VerificationToken)
-		project, _ := NewProject("test", projectOwner)
-
-		if user.HasPendingInviteForProject(project) {
-			t.Error("should return false when user has no pending invites for project")
-		}
-	})
-
-	t.Run("should return true when user has pending invites for project", func(t *testing.T) {
-		projectOwner, _ := NewUser("owner@domain.com", "Owner", "12345678")
-		projectOwner.Verify(projectOwner.VerificationToken)
-		project, _ := NewProject("test", projectOwner)
-
-		invitedUser, _ := NewUser("invited@domain.com", "Invited", "12345678")
-		NewProjectInvite(project, invitedUser)
-
-		if !invitedUser.HasPendingInviteForProject(project) {
-			t.Error("should return faltruese when user has no pending invites for project")
-		}
-	})
-}

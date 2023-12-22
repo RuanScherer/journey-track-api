@@ -2,27 +2,36 @@ package model
 
 import (
 	"errors"
-	"time"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 const (
 	ProjectInviteStatusPending  = "pending"
 	ProjectInviteStatusAccepted = "accepted"
 	ProjectInviteStatusDeclined = "declined"
-	ProjectInviteStatusRevoked  = "revoked"
 )
 
+type ProjectInviteRepository interface {
+	Create(projectInvite *ProjectInvite) error
+	Save(projectInvite *ProjectInvite) error
+	DeleteById(projectInviteId string) error
+	FindById(projectInviteId string) (*ProjectInvite, error)
+	FindByProjectAndToken(projectId string, token string) (*ProjectInvite, error)
+	FindPendingByUserAndProject(userId string, projectId string) (*ProjectInvite, error)
+}
+
 type ProjectInvite struct {
-	ID              string     `json:"id" valid:"uuid~[project invite] Invalid ID"`
-	Project         *Project   `json:"project" valid:"-"`
-	User            *User      `json:"user" valid:"-"`
-	Status          string     `json:"status" valid:"in(pending|accepted|declined|revoked)~[project invite] Invalid status"`
-	Token           string     `valid:"uuid~[project invite] Invalid token"`
-	AnswerTimestamp *time.Time `json:"answer_timestamp" valid:"-"`
-	RevokeTimestamp *time.Time `json:"revoke_timestamp" valid:"-"`
+	gorm.Model
+	ID        string   `json:"id" gorm:"primaryKey" valid:"uuid~[project invite] Invalid ID"`
+	ProjectID string   `gorm:"column:project_id;type:varchar(255);not null" valid:"-"`
+	Project   *Project `json:"project" gorm:"" valid:"-"`
+	UserID    string   `gorm:"column:user_id;type:varchar(255);not null" valid:"-"`
+	User      *User    `json:"user" valid:"-"`
+	Status    string   `json:"status" gorm:"type:varchar(100);not null" valid:"in(pending|accepted|declined|revoked)~[project invite] Invalid status"`
+	Token     string   `gorm:"type:varchar(255);unique;not null" valid:"uuid~[project invite] Invalid token"`
 }
 
 func NewProjectInvite(project *Project, user *User) (*ProjectInvite, error) {
@@ -40,14 +49,10 @@ func NewProjectInvite(project *Project, user *User) (*ProjectInvite, error) {
 		return nil, errors.New("user is already a member of the project")
 	}
 
-	if user.HasPendingInviteForProject(project) {
-		return nil, errors.New("user already has a pending invite for the project")
-	}
-
 	projectInvite := &ProjectInvite{
 		ID:      uuid.New().String(),
 		Project: project,
-		User:    user,
+		UserID:  user.ID,
 		Status:  ProjectInviteStatusPending,
 		Token:   uuid.New().String(),
 	}
@@ -57,19 +62,12 @@ func NewProjectInvite(project *Project, user *User) (*ProjectInvite, error) {
 		return nil, err
 	}
 
-	user.ProjectInvites = append(user.ProjectInvites, projectInvite)
-	project.Invites = append(project.Invites, projectInvite)
 	return projectInvite, nil
 }
 
 func (projectInvite *ProjectInvite) Accept(token string) error {
 	err := projectInvite.answer(ProjectInviteStatusAccepted, token)
-	if err != nil {
-		return err
-	}
-
-	projectInvite.Project.Members = append(projectInvite.Project.Members, projectInvite.User)
-	return nil
+	return err
 }
 
 func (projectInvite *ProjectInvite) Decline(token string) error {
@@ -92,26 +90,6 @@ func (projectInvite *ProjectInvite) answer(answer string, token string) error {
 	}
 
 	projectInvite.Status = answer
-	answerTimestamp := time.Now()
-	projectInvite.AnswerTimestamp = &answerTimestamp
-
-	_, err := govalidator.ValidateStruct(projectInvite)
-	return err
-}
-
-func (projectInvite *ProjectInvite) Revoke(actor *User) error {
-	if !projectInvite.Project.HasMember(actor) {
-		return errors.New("only project members can revoke invites")
-	}
-
-	if projectInvite.Status != ProjectInviteStatusPending {
-		return errors.New("invite already answered or revoked")
-	}
-
-	projectInvite.Status = ProjectInviteStatusRevoked
-	revokeTimestamp := time.Now()
-	projectInvite.RevokeTimestamp = &revokeTimestamp
-
 	_, err := govalidator.ValidateStruct(projectInvite)
 	return err
 }

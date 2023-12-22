@@ -5,15 +5,26 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
+type ProjectRepository interface {
+	Register(project *Project) error
+	Save(project *Project) error
+	FindByMemberId(memberId string) ([]*Project, error)
+	FindById(id string) (*Project, error)
+	DeleteById(id string) error
+}
+
 type Project struct {
-	ID      string           `json:"id" valid:"uuid~[project] Invalid ID"`
-	Name    string           `json:"name" valid:"required~[project] Name is required,minstringlength(2)~[project] Name too short"`
-	OwnerID string           `json:"owner_id" valid:"required~[project] Owner is required,uuid~[project] Invalid owner ID"`
-	Members []*User          `json:"members" valid:"-"`
-	Invites []*ProjectInvite `json:"invites" valid:"-"`
-	Token   string           `json:"token" valid:"required~[project] Token is required,uuid~[project] Invalid token"`
+	gorm.Model
+	ID      string           `json:"id" gorm:"primaryKey" valid:"uuid~[project] Invalid ID"`
+	Name    string           `json:"name" gorm:"type:varchar(255);not null" valid:"required~[project] Name is required,minstringlength(2)~[project] Name too short"`
+	OwnerID string           `json:"owner_id" gorm:"column:owner_id;type:varchar(255);not null" valid:"required~[project] Owner is required,uuid~[project] Invalid owner ID"`
+	Members []*User          `json:"members" gorm:"many2many:user_projects" valid:"-"`
+	Invites []*ProjectInvite `json:"invites" gorm:"foreignKey:ProjectID" valid:"-"`
+	Events  []*Event         `json:"events" gorm:"foreignKey:ProjectID" valid:"-"`
+	Token   string           `json:"token" gorm:"type:varchar(255);unique" valid:"required~[project] Token is required,uuid~[project] Invalid token"`
 }
 
 func NewProject(name string, owner *User) (*Project, error) {
@@ -39,13 +50,27 @@ func NewProject(name string, owner *User) (*Project, error) {
 		return nil, err
 	}
 
-	owner.Projects = append(owner.Projects, project)
 	return project, nil
 }
 
 func (project *Project) ChangeName(newName string) error {
 	project.Name = newName
 	_, err := govalidator.ValidateStruct(project)
+	return err
+}
+
+func (project *Project) AddMember(user *User) error {
+	_, err := govalidator.ValidateStruct(user)
+	if err != nil {
+		return err
+	}
+
+	if project.HasMember(user) {
+		return errors.New("user is already a member of the project")
+	}
+
+	project.Members = append(project.Members, user)
+	_, err = govalidator.ValidateStruct(project)
 	return err
 }
 

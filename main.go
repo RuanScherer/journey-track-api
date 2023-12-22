@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/asaskevich/govalidator"
+	"github.com/RuanScherer/journey-track-api/cmd/server"
 )
 
 func main() {
-	govalidator.SetFieldsRequiredByDefault(true)
+	server.StartServer()
 }
