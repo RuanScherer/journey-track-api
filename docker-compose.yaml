@@ -6,3 +6,29 @@ services:
     container_name: api
     volumes:
       - .:/app
+    depends_on:
+      - db
+  
+  db:
+    image: postgres:16.1-alpine
+    container_name: database
+    restart: always
+    environment:
+      POSTGRES_USER: journeytrack
+      POSTGRES_PASSWORD: journeytrack
+      POSTGRES_DB: journey_track
+    volumes:
+      - .pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: root@root.com
+      PGADMIN_DEFAULT_PASSWORD: root
+      PGADMIN_LISTEN_PORT: 8080
+    ports:
+      - "8080:8080"
+
