@@ -24,7 +24,7 @@ type Project struct {
 	Members []*User          `json:"members" gorm:"many2many:user_projects" valid:"-"`
 	Invites []*ProjectInvite `json:"invites" gorm:"foreignKey:ProjectID" valid:"-"`
 	Events  []*Event         `json:"events" gorm:"foreignKey:ProjectID" valid:"-"`
-	Token   string           `json:"token" gorm:"type:varchar(255);unique" valid:"required~[project] Token is required,uuid~[project] Invalid token"`
+	Token   *string          `json:"token" gorm:"type:varchar(255);unique" valid:"required~[project] Token is required,uuid~[project] Invalid token"`
 }
 
 func NewProject(name string, owner *User) (*Project, error) {
@@ -37,12 +37,13 @@ func NewProject(name string, owner *User) (*Project, error) {
 		return nil, errors.New("owner must be verified")
 	}
 
+	token := uuid.New().String()
 	project := &Project{
 		ID:      uuid.New().String(),
 		Name:    name,
 		OwnerID: owner.ID,
 		Members: []*User{owner},
-		Token:   uuid.New().String(),
+		Token:   &token,
 	}
 
 	_, err = govalidator.ValidateStruct(project)

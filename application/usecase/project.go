@@ -85,7 +85,7 @@ func (useCase *ProjectUseCase) ShowProject(projectId string) (*appmodel.ShowProj
 	for _, m := range project.Members {
 		member := &appmodel.ShowUserResponse{
 			ID:         m.ID,
-			Email:      m.Email,
+			Email:      *m.Email,
 			Name:       m.Name,
 			IsVerified: m.IsVerified,
 		}
@@ -162,7 +162,7 @@ func (useCase *ProjectUseCase) InviteMember(req *appmodel.InviteProjectMemberReq
 		},
 		User: &appmodel.InviteUser{
 			ID:    user.ID,
-			Email: user.Email,
+			Email: *user.Email,
 			Name:  user.Name,
 		},
 		Status: projectInvite.Status,

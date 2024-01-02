@@ -75,7 +75,7 @@ func TestNewUser(t *testing.T) {
 			return
 		}
 
-		if user.VerificationToken == "" {
+		if user.VerificationToken == nil || *user.VerificationToken == "" {
 			t.Error("should return user with verification token")
 		}
 	})
@@ -101,7 +101,7 @@ func TestNewUser(t *testing.T) {
 func TestRegenerateVerificationToken(t *testing.T) {
 	t.Run("should not regenerate verification token when user is already verified", func(t *testing.T) {
 		user, _ := NewUser("example@domain.com", "Ruan", "12345678")
-		user.Verify(user.VerificationToken)
+		user.Verify(*user.VerificationToken)
 
 		err := user.RegenerateVerificationToken()
 		if err == nil || err.Error() != "user already verified" {
@@ -136,7 +136,7 @@ func TestVerify(t *testing.T) {
 
 	t.Run("should verify user when verification token is valid", func(t *testing.T) {
 		user, _ := NewUser("example@domain.com", "Ruan", "12345678")
-		err := user.Verify(user.VerificationToken)
+		err := user.Verify(*user.VerificationToken)
 
 		if err != nil {
 			t.Error("should not get error when verification token is valid")
@@ -146,7 +146,7 @@ func TestVerify(t *testing.T) {
 			t.Error("should verify user when verification token is valid")
 		}
 
-		if user.VerificationToken != "" {
+		if user.VerificationToken != nil {
 			t.Error("should delete verification token when already used")
 		}
 	})
@@ -170,17 +170,26 @@ func TestUserChangeName(t *testing.T) {
 
 func TestRequestPasswordReset(t *testing.T) {
 	user, _ := NewUser("example@domain.com", "Ruan", "12345678")
-	if user.PasswordResetToken != "" {
+	if user.PasswordResetToken != nil {
 		t.Error("should not have password reset token by default")
 	}
 
 	user.RequestPasswordReset()
-	if user.PasswordResetToken == "" {
+	if user.PasswordResetToken == nil || *user.PasswordResetToken == "" {
 		t.Error("should have password reset token after request")
 	}
 }
 
 func TestResetPassword(t *testing.T) {
+	t.Run("should return error when there's no request for password reset", func(t *testing.T) {
+		user, _ := NewUser("example@domain.com", "Ruan", "12345678")
+
+		err := user.ResetPassword("new password", "")
+		if err == nil || err.Error() != "user has no request for password reset" {
+			t.Error("should return error when there's no request for password reset")
+		}
+	})
+
 	t.Run("should return error when password reset token is invalid", func(t *testing.T) {
 		user, _ := NewUser("example@domain.com", "Ruan", "12345678")
 		user.RequestPasswordReset()
@@ -195,12 +204,12 @@ func TestResetPassword(t *testing.T) {
 		user, _ := NewUser("example@domain.com", "Ruan", "12345678")
 		user.RequestPasswordReset()
 
-		err := user.ResetPassword("", user.PasswordResetToken)
+		err := user.ResetPassword("", *user.PasswordResetToken)
 		if err == nil || err.Error() != "[user] Password is required" {
 			t.Error("should return error when password is blank")
 		}
 
-		err = user.ResetPassword("1234567", user.PasswordResetToken)
+		err = user.ResetPassword("1234567", *user.PasswordResetToken)
 		if err == nil || err.Error() != "[user] Password too short" {
 			t.Error("should return error when password is too short")
 		}
@@ -210,7 +219,7 @@ func TestResetPassword(t *testing.T) {
 		user, _ := NewUser("example@domain.com", "Ruan", "12345678")
 		user.RequestPasswordReset()
 
-		err := user.ResetPassword("new password", user.PasswordResetToken)
+		err := user.ResetPassword("new password", *user.PasswordResetToken)
 		if err != nil {
 			t.Error("should reset password when password reset token is valid")
 		}

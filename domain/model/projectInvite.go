@@ -31,7 +31,7 @@ type ProjectInvite struct {
 	UserID    string   `gorm:"column:user_id;type:varchar(255);not null" valid:"-"`
 	User      *User    `json:"user" valid:"-"`
 	Status    string   `json:"status" gorm:"type:varchar(100);not null" valid:"in(pending|accepted|declined|revoked)~[project invite] Invalid status"`
-	Token     string   `gorm:"type:varchar(255);unique;not null" valid:"uuid~[project invite] Invalid token"`
+	Token     *string  `gorm:"type:varchar(255);unique;not null" valid:"uuid~[project invite] Invalid token"`
 }
 
 func NewProjectInvite(project *Project, user *User) (*ProjectInvite, error) {
@@ -49,12 +49,13 @@ func NewProjectInvite(project *Project, user *User) (*ProjectInvite, error) {
 		return nil, errors.New("user is already a member of the project")
 	}
 
+	token := uuid.New().String()
 	projectInvite := &ProjectInvite{
 		ID:      uuid.New().String(),
 		Project: project,
 		UserID:  user.ID,
 		Status:  ProjectInviteStatusPending,
-		Token:   uuid.New().String(),
+		Token:   &token,
 	}
 
 	_, err = govalidator.ValidateStruct(projectInvite)
@@ -76,7 +77,7 @@ func (projectInvite *ProjectInvite) Decline(token string) error {
 }
 
 func (projectInvite *ProjectInvite) answer(answer string, token string) error {
-	if projectInvite.Token != token {
+	if *projectInvite.Token != token {
 		return errors.New("invalid token provided to answer invite")
 	}
 

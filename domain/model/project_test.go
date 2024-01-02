@@ -23,7 +23,7 @@ func TestNewProject(t *testing.T) {
 
 	t.Run("should get error when project name is invalid", func(t *testing.T) {
 		owner, _ := NewUser("owner@domain.com", "Owner", "pass1234")
-		owner.Verify(owner.VerificationToken)
+		owner.Verify(*owner.VerificationToken)
 
 		_, err := NewProject("", owner)
 		if err == nil {
@@ -38,7 +38,7 @@ func TestNewProject(t *testing.T) {
 
 	t.Run("should get project when owner and project name is valid", func(t *testing.T) {
 		owner, _ := NewUser("owner@domain.com", "Owner", "pass1234")
-		owner.Verify(owner.VerificationToken)
+		owner.Verify(*owner.VerificationToken)
 
 		_, err := NewProject("my project", owner)
 		if err != nil {
@@ -48,10 +48,10 @@ func TestNewProject(t *testing.T) {
 
 	t.Run("should have token", func(t *testing.T) {
 		owner, _ := NewUser("owner@domain.com", "Owner", "pass1234")
-		owner.Verify(owner.VerificationToken)
+		owner.Verify(*owner.VerificationToken)
 
 		project, _ := NewProject("my project", owner)
-		if project.Token == "" {
+		if project.Token == nil || *project.Token == "" {
 			t.Error("should have token")
 		}
 	})
@@ -60,7 +60,7 @@ func TestNewProject(t *testing.T) {
 func TestProjectChangeName(t *testing.T) {
 	t.Run("should get error when provided name is invalid", func(t *testing.T) {
 		owner, _ := NewUser("owner@domain.com", "Owner", "pass1234")
-		owner.Verify(owner.VerificationToken)
+		owner.Verify(*owner.VerificationToken)
 
 		project, _ := NewProject("my project", owner)
 		err := project.ChangeName("")
@@ -77,7 +77,7 @@ func TestProjectChangeName(t *testing.T) {
 
 	t.Run("should change name when provided name is valid", func(t *testing.T) {
 		owner, _ := NewUser("owner@domain.com", "Owner", "pass1234")
-		owner.Verify(owner.VerificationToken)
+		owner.Verify(*owner.VerificationToken)
 
 		project, _ := NewProject("my project", owner)
 		project.ChangeName("my other project")
@@ -91,7 +91,7 @@ func TestProjectChangeName(t *testing.T) {
 func TestAddMember(t *testing.T) {
 	t.Run("should get error when provided user is invalid", func(t *testing.T) {
 		owner, _ := NewUser("owner@domain.com", "Owner", "pass1234")
-		owner.Verify(owner.VerificationToken)
+		owner.Verify(*owner.VerificationToken)
 
 		project, _ := NewProject("my project", owner)
 
@@ -105,7 +105,7 @@ func TestAddMember(t *testing.T) {
 
 	t.Run("should get error when provided user is already a member of the project", func(t *testing.T) {
 		owner, _ := NewUser("owner@domain.com", "Owner", "pass1234")
-		owner.Verify(owner.VerificationToken)
+		owner.Verify(*owner.VerificationToken)
 
 		project, _ := NewProject("my project", owner)
 
@@ -120,7 +120,7 @@ func TestAddMember(t *testing.T) {
 
 	t.Run("should add member", func(t *testing.T) {
 		owner, _ := NewUser("owner@domain.com", "Owner", "pass1234")
-		owner.Verify(owner.VerificationToken)
+		owner.Verify(*owner.VerificationToken)
 
 		project, _ := NewProject("my project", owner)
 

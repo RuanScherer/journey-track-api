@@ -12,18 +12,19 @@ type UserRepository interface {
 	Register(user *User) error
 	Save(user *User) error
 	FindById(id string) (*User, error)
+	FindByEmail(email string) (*User, error)
 	SearchByEmail(email string) ([]*User, error)
 }
 
 type User struct {
 	gorm.Model
 	ID                 string           `json:"id" gorm:"primaryKey" valid:"uuid~[user] Invalid ID"`
-	Email              string           `json:"email" gorm:"type:varchar(255);unique;not null" valid:"required~[user] Email is required,email~[user] Invalid email"`
+	Email              *string          `json:"email" gorm:"type:varchar(255);unique;not null" valid:"required~[user] Email is required,email~[user] Invalid email"`
 	Name               string           `json:"name" gorm:"type:varchar(255);not null" valid:"required~[user] Name is required,minstringlength(2)~[user] Name too short"`
 	Password           string           `json:"password" gorm:"type:varchar(255);not null" valid:"required~[user] Password is required,minstringlength(8)~[user] Password too short"`
-	VerificationToken  string           `gorm:"column:verification_token;type:varchar(255);unique;default:null" valid:"-"`
+	VerificationToken  *string          `gorm:"column:verification_token;type:varchar(255);unique;default:null" valid:"-"`
 	IsVerified         bool             `json:"is_verified" gorm:"column:is_verified;type:boolean;not null" valid:"-"`
-	PasswordResetToken string           `gorm:"column:password_reset_token;type:varchar(255);unique;default:null" valid:"-"`
+	PasswordResetToken *string          `gorm:"column:password_reset_token;type:varchar(255);unique;default:null" valid:"-"`
 	Projects           []*Project       `gorm:"many2many:user_projects" json:"projects" valid:"-"`
 	ProjectInvites     []*ProjectInvite `gorm:"foreignKey:UserID" json:"project_invites" valid:"-"`
 }
@@ -31,7 +32,7 @@ type User struct {
 func NewUser(email string, name string, password string) (*User, error) {
 	user := &User{
 		ID:       uuid.New().String(),
-		Email:    email,
+		Email:    &email,
 		Name:     name,
 		Password: password,
 	}
@@ -41,7 +42,7 @@ func NewUser(email string, name string, password string) (*User, error) {
 	}
 
 	verificationToken := uuid.New().String()
-	user.VerificationToken = verificationToken
+	user.VerificationToken = &verificationToken
 	user.IsVerified = false
 
 	return user, nil
@@ -53,17 +54,17 @@ func (user *User) RegenerateVerificationToken() error {
 	}
 
 	verificationToken := uuid.New().String()
-	user.VerificationToken = verificationToken
+	user.VerificationToken = &verificationToken
 	return nil
 }
 
 func (user *User) Verify(verificationToken string) error {
-	if user.VerificationToken != verificationToken {
+	if *user.VerificationToken != verificationToken {
 		return errors.New("invalid verification token")
 	}
 
 	user.IsVerified = true
-	user.VerificationToken = ""
+	user.VerificationToken = nil
 	return nil
 }
 
@@ -75,17 +76,24 @@ func (user *User) ChangeName(newName string) error {
 
 func (user *User) RequestPasswordReset() {
 	passwordResetToken := uuid.New().String()
-	user.PasswordResetToken = passwordResetToken
+	user.PasswordResetToken = &passwordResetToken
 }
 
 func (user *User) ResetPassword(newPassword string, passwordResetToken string) error {
-	if user.PasswordResetToken != passwordResetToken {
+	if user.PasswordResetToken == nil {
+		return errors.New("user has no request for password reset")
+	}
+
+	if *user.PasswordResetToken != passwordResetToken {
 		return errors.New("invalid password reset token")
 	}
 
 	user.Password = newPassword
-	user.PasswordResetToken = ""
-
 	_, err := govalidator.ValidateStruct(user)
-	return err
+	if err != nil {
+		return err
+	}
+
+	user.PasswordResetToken = nil
+	return nil
 }
