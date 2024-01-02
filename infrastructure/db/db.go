@@ -23,7 +23,9 @@ func GetConnection() *gorm.DB {
 func connect() *gorm.DB {
 	appConfig := config.GetAppConfig()
 
-	gormConfig := &gorm.Config{}
+	gormConfig := &gorm.Config{
+		TranslateError: true,
+	}
 	if appConfig.DbLogEnabled {
 		gormConfig.Logger = logger.New(
 			log.New(os.Stdout, "\r\n", log.LstdFlags),
