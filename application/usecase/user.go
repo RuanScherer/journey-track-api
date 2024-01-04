@@ -1,9 +1,6 @@
 package usecase
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/utils"
 	"github.com/RuanScherer/journey-track-api/domain/model"
@@ -101,17 +98,24 @@ func (useCase *UserUseCase) SignIn(req *appmodel.SignInRequest) (*appmodel.SignI
 func (useCase *UserUseCase) EditUser(req *appmodel.EditUserRequest) (*appmodel.EditUserResponse, error) {
 	user, err := useCase.repository.FindById(req.UserID)
 	if err != nil {
-		return nil, err
+		if err == gorm.ErrRecordNotFound {
+			return nil, appmodel.NewAppError("user_not_found", "user not found", appmodel.ErrorTypeValidation)
+		}
+		return nil, appmodel.NewAppError("unable_to_find_user", "unable to find user", appmodel.ErrorTypeDatabase)
 	}
 
 	err = user.ChangeName(req.Name)
 	if err != nil {
-		return nil, err
+		return nil, appmodel.NewAppError("unable_to_edit_user", err.Error(), appmodel.ErrorTypeValidation)
 	}
 
 	err = useCase.repository.Save(user)
 	if err != nil {
-		return nil, err
+		return nil, appmodel.NewAppError(
+			"unable_to_save_user_changes",
+			"unable to save user changes",
+			appmodel.ErrorTypeDatabase,
+		)
 	}
 
 	return &appmodel.EditUserResponse{
@@ -122,16 +126,16 @@ func (useCase *UserUseCase) EditUser(req *appmodel.EditUserRequest) (*appmodel.E
 	}, nil
 }
 
-func (useCase *UserUseCase) RequestUserPasswordReset(userId string) error {
-	user, err := useCase.repository.FindById(userId)
+func (useCase *UserUseCase) RequestUserPasswordReset(req *appmodel.RequestPasswordResetRequest) error {
+	user, err := useCase.repository.FindByEmail(req.Email)
 	if err != nil {
-		return err
+		return appmodel.NewAppError("user_not_found", "user not found", appmodel.ErrorTypeValidation)
 	}
 
 	user.RequestPasswordReset()
 	err = useCase.repository.Save(user)
 	if err != nil {
-		return err
+		return appmodel.NewAppError("unable_to_complete", "unable to complete the request", appmodel.ErrorTypeDatabase)
 	}
 
 	return nil
@@ -140,18 +144,21 @@ func (useCase *UserUseCase) RequestUserPasswordReset(userId string) error {
 func (useCase *UserUseCase) ResetUserPassword(req *appmodel.PasswordResetRequest) error {
 	u, err := useCase.repository.FindById(req.UserID)
 	if err != nil {
-		return err
+		return appmodel.NewAppError("user_not_found", "user not found", appmodel.ErrorTypeValidation)
 	}
 
-	passwordHash := sha256.Sum256([]byte(req.Password))
-	err = u.ResetPassword(hex.EncodeToString(passwordHash[:]), req.PasswordResetToken)
+	err = u.ResetPassword(req.Password, req.PasswordResetToken)
 	if err != nil {
-		return err
+		return appmodel.NewAppError("unable_to_reset_password", err.Error(), appmodel.ErrorTypeValidation)
 	}
 
 	err = useCase.repository.Save(u)
 	if err != nil {
-		return err
+		return appmodel.NewAppError(
+			"unable_to_save_user_changes",
+			"unable to save user changes",
+			appmodel.ErrorTypeDatabase,
+		)
 	}
 
 	return nil
@@ -160,7 +167,7 @@ func (useCase *UserUseCase) ResetUserPassword(req *appmodel.PasswordResetRequest
 func (useCase *UserUseCase) ShowUser(userId string) (*appmodel.ShowUserResponse, error) {
 	user, err := useCase.repository.FindById(userId)
 	if err != nil {
-		return nil, err
+		return nil, appmodel.NewAppError("user_not_found", "user not found", appmodel.ErrorTypeValidation)
 	}
 
 	return &appmodel.ShowUserResponse{

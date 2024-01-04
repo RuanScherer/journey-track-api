@@ -32,13 +32,14 @@ func RegisterRoutes(app *fiber.App) {
 
 	v1.Post("/signin", userHandler.SignIn)
 
+	v1.Post("/users/request-password-reset", userHandler.RequestPasswordReset)
+	v1.Patch("/users/:id/reset-password/:token", userHandler.ResetPassword)
 	v1.Post("/users/register", userHandler.RegisterUser)
 	v1.Patch("/users/:id/verify/:token", userHandler.VerifyUser)
 
 	// auth middleware - separate protected routes
 	api.Use(middlewares.HandleAuth)
 
-	// v1.Get("/users/", func(ctx *fiber.Ctx) error {
-	// 	return ctx.SendString(ctx.Locals("sessionUser").(model.AuthUser).Name)
-	// })
+	v1.Put("/users/edit-profile", userHandler.EditUser)
+	v1.Get("/users/profile", userHandler.ShowUser)
 }

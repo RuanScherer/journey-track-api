@@ -39,6 +39,10 @@ type EditUserResponse struct {
 	IsVerified bool   `json:"is_verified"`
 }
 
+type RequestPasswordResetRequest struct {
+	Email string `json:"email"`
+}
+
 type PasswordResetRequest struct {
 	UserID             string `json:"user_id"`
 	PasswordResetToken string `json:"password_reset_token"`
