@@ -5,6 +5,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -40,6 +41,12 @@ func NewUser(email string, name string, password string) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, errors.New("[user] Unable to encrypt password")
+	}
+	user.Password = string(passwordHash)
 
 	verificationToken := uuid.New().String()
 	user.VerificationToken = &verificationToken
@@ -93,6 +100,12 @@ func (user *User) ResetPassword(newPassword string, passwordResetToken string) e
 	if err != nil {
 		return err
 	}
+
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return errors.New("[user] Unable to encrypt password")
+	}
+	user.Password = string(passwordHash)
 
 	user.PasswordResetToken = nil
 	return nil
