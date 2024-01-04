@@ -50,5 +50,9 @@ func GetJwtClaims(token string) (*appmodel.JwtClaims, error) {
 		return nil, appmodel.NewAppError("invalid_access_token", "invalid access token", appmodel.ErrorTypeAuthentication)
 	}
 
+	if claims.ExpiresAt.Time.Before(time.Now()) {
+		return nil, appmodel.NewAppError("expired_access_token", "expired access token", appmodel.ErrorTypeAuthentication)
+	}
+
 	return claims, nil
 }
