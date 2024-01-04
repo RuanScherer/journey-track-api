@@ -8,10 +8,11 @@ import (
 var (
 	ErrInvalidReqData = NewAppError("invalid_request_data", "Invalid request data", ErrorTypeRequest)
 
-	ErrorTypeValidation = "validation"
-	ErrorTypeDatabase   = "database"
-	ErrorTypeRequest    = "request"
-	ErrorTypeServer     = "server"
+	ErrorTypeValidation     = "validation"
+	ErrorTypeDatabase       = "database"
+	ErrorTypeRequest        = "request"
+	ErrorTypeServer         = "server"
+	ErrorTypeAuthentication = "authentication"
 )
 
 type AppError struct {

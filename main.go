@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/RuanScherer/journey-track-api/cmd/server"
+	"github.com/RuanScherer/journey-track-api/cmd/rest"
 )
 
 func main() {
-	server.StartServer()
+	rest.StartAPI()
 }

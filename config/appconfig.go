@@ -5,6 +5,10 @@ import "github.com/spf13/viper"
 type AppConfig struct {
 	DbDsn        string `mapstructure:"DB_DSN"`
 	DbLogEnabled bool   `mapstructure:"DB_LOG_ENABLED"`
+
+	RestApiPort uint `mapstructure:"REST_API_PORT"`
+
+	JwtSecret string `mapstructure:"JWT_SECRET"`
 }
 
 var config *AppConfig
@@ -21,6 +25,9 @@ func loadConfig() *AppConfig {
 	viper.SetConfigType("env")
 	viper.SetConfigName(".env")
 	viper.AddConfigPath(".")
+
+	viper.SetDefault("DB_LOG_ENABLED", false)
+	viper.SetDefault("REST_API_PORT", 3000)
 
 	err := viper.ReadInConfig()
 	if err != nil {

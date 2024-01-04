@@ -28,7 +28,20 @@ func (repository *UserDBRepository) FindById(id string) (*model.User, error) {
 		Preload("ProjectInvites").
 		Where("id = ?", id).
 		First(&user).Error
-	return &user, err
+
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (repository *UserDBRepository) FindByEmail(email string) (*model.User, error) {
+	var user model.User
+	err := repository.DB.Where("email = ?", email).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 
 func (repository *UserDBRepository) SearchByEmail(email string) ([]*model.User, error) {

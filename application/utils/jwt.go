@@ -32,3 +32,23 @@ func CreateJwtFromUser(user *model.User) (string, error) {
 
 	return jwtString, nil
 }
+
+func GetJwtClaims(token string) (*appmodel.JwtClaims, error) {
+	if token == "" {
+		return nil, appmodel.NewAppError("missing_access_token", "missing access token", appmodel.ErrorTypeAuthentication)
+	}
+
+	parsedToken, err := jwt.ParseWithClaims(token, &appmodel.JwtClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(config.GetAppConfig().JwtSecret), nil
+	})
+	if err != nil {
+		return nil, appmodel.NewAppError("invalid_access_token", "invalid access token", appmodel.ErrorTypeAuthentication)
+	}
+
+	claims, ok := parsedToken.Claims.(*appmodel.JwtClaims)
+	if !ok {
+		return nil, appmodel.NewAppError("invalid_access_token", "invalid access token", appmodel.ErrorTypeAuthentication)
+	}
+
+	return claims, nil
+}
