@@ -5,7 +5,9 @@ import (
 	"encoding/hex"
 
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
+	"github.com/RuanScherer/journey-track-api/application/utils"
 	"github.com/RuanScherer/journey-track-api/domain/model"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -63,6 +65,37 @@ func (useCase *UserUseCase) VerifyUser(req *appmodel.VerifyUserRequest) *appmode
 	}
 
 	return nil
+}
+
+func (useCase *UserUseCase) SignIn(req *appmodel.SignInRequest) (*appmodel.SignInResponse, *appmodel.AppError) {
+	user, err := useCase.repository.FindByEmail(req.Email)
+	if err != nil {
+		return nil, appmodel.NewAppError(
+			"invalid_auth_credentials",
+			"Invalid authentication credentials",
+			appmodel.ErrorTypeValidation,
+		)
+	}
+
+	if !user.IsVerified {
+		return nil, appmodel.NewAppError("user_not_verified", "User is not verified", appmodel.ErrorTypeValidation)
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	if err != nil {
+		return nil, appmodel.NewAppError(
+			"invalid_auth_credentials",
+			"Invalid authentication credentials",
+			appmodel.ErrorTypeValidation,
+		)
+	}
+
+	jwt, err := utils.CreateJwtFromUser(user)
+	if err != nil {
+		return nil, appmodel.NewAppError("unexpected_error", err.Error(), appmodel.ErrorTypeServer)
+	}
+
+	return &appmodel.SignInResponse{AccessToken: jwt}, nil
 }
 
 func (useCase *UserUseCase) EditUser(req *appmodel.EditUserRequest) (*appmodel.EditUserResponse, error) {

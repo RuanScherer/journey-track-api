@@ -18,6 +18,15 @@ type VerifyUserRequest struct {
 	VerificationToken string `json:"verification_token"`
 }
 
+type SignInRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type SignInResponse struct {
+	AccessToken string `json:"access_token"`
+}
+
 type EditUserRequest struct {
 	UserID string `json:"user_id"`
 	Name   string `json:"name"`
