@@ -2,99 +2,53 @@ package model
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewUser(t *testing.T) {
 	t.Run("should return error when email is invalid", func(t *testing.T) {
 		_, err := NewUser("", "name", "password")
-		if err == nil || err.Error() != "[user] Email is required" {
-			t.Error("should return error when email is blank")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "[user] Email is required", err.Error())
 
 		_, err = NewUser("invalid email", "name", "password")
-		if err == nil || err.Error() != "[user] Invalid email" {
-			t.Error("should return error when email is invalid")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "[user] Invalid email", err.Error())
 
 		_, err = NewUser("invalid@invalid", "name", "password")
-		if err == nil || err.Error() != "[user] Invalid email" {
-			t.Error("should return error when email is invalid")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "[user] Invalid email", err.Error())
 	})
 
 	t.Run("should return error when name is invalid", func(t *testing.T) {
 		_, err := NewUser("example@domain.com", "", "password")
-		if err == nil || err.Error() != "[user] Name is required" {
-			t.Error("should return error when name is blank")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "[user] Name is required", err.Error())
 
 		_, err = NewUser("example@domain.com", "n", "password")
-		if err == nil || err.Error() != "[user] Name too short" {
-			t.Error("should return error when name is too short")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "[user] Name too short", err.Error())
 	})
 
 	t.Run("should return error when password is invalid", func(t *testing.T) {
 		_, err := NewUser("example@domain.com", "Ruan", "")
-		if err == nil || err.Error() != "[user] Password is required" {
-			t.Error("should return error when password is blank")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "[user] Password is required", err.Error())
 
 		_, err = NewUser("example@domain.com", "Ruan", "1234567")
-		if err == nil || err.Error() != "[user] Password too short" {
-			t.Error("should return error when password is too short")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "[user] Password too short", err.Error())
 	})
 
 	t.Run("should return user when data is valid", func(t *testing.T) {
 		user, err := NewUser("example@domain.com", "Ruan", "12345678")
-		if err != nil {
-			t.Error("should return user when data is valid")
-			return
-		}
-
-		if user == nil {
-			t.Error("should return user when data is valid")
-			return
-		}
-
-		if user.ID == "" {
-			t.Error("should return user with ID")
-		}
-	})
-
-	t.Run("should return user with verification token", func(t *testing.T) {
-		user, err := NewUser("example@domain.com", "Ruan", "12345678")
-		if err != nil {
-			t.Error("should return user when data is valid")
-			return
-		}
-
-		if user == nil {
-			t.Error("should return user when data is valid")
-			return
-		}
-
-		if user.VerificationToken == nil || *user.VerificationToken == "" {
-			t.Error("should return user with verification token")
-		}
-	})
-
-	t.Run("should return user not verified", func(t *testing.T) {
-		user, err := NewUser("example@domain.com", "Ruan", "12345678")
-		if err != nil {
-			t.Error("should return user when data is valid")
-			return
-		}
-
-		if user == nil {
-			t.Error("should return user when data is valid")
-			return
-		}
-
-		if user.IsVerified {
-			t.Error("should return user not verified")
-		}
+		require.Nil(t, err)
+		require.NotNil(t, user)
+		require.NotEmpty(t, user.ID)
+		require.NotNil(t, user.VerificationToken)
+		require.NotEmpty(t, *user.VerificationToken)
+		require.False(t, user.IsVerified)
 	})
 }
 
@@ -104,9 +58,8 @@ func TestRegenerateVerificationToken(t *testing.T) {
 		user.Verify(*user.VerificationToken)
 
 		err := user.RegenerateVerificationToken()
-		if err == nil || err.Error() != "user already verified" {
-			t.Error("should not regenerate verification token when user is already verified")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "user already verified", err.Error())
 	})
 
 	t.Run("should regenerate verification token when user is not verified", func(t *testing.T) {
@@ -114,13 +67,10 @@ func TestRegenerateVerificationToken(t *testing.T) {
 		originalVerificationToken := user.VerificationToken
 
 		err := user.RegenerateVerificationToken()
-		if err != nil {
-			t.Error("should not return error when user is not verified")
-		}
-
-		if user.VerificationToken == originalVerificationToken {
-			t.Error("should regenerate verification token when user is not verified")
-		}
+		require.Nil(t, err)
+		require.NotEqual(t, originalVerificationToken, user.VerificationToken)
+		require.NotNil(t, user.VerificationToken)
+		require.NotEmpty(t, *user.VerificationToken)
 	})
 }
 
@@ -128,27 +78,16 @@ func TestVerify(t *testing.T) {
 	t.Run("should return error when verification token is invalid", func(t *testing.T) {
 		user, _ := NewUser("example@domain.com", "Ruan", "12345678")
 		err := user.Verify("oisnoanfiosanf")
-
-		if err == nil || err.Error() != "invalid verification token" {
-			t.Error("should return error when verification token is invalid")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "invalid verification token", err.Error())
 	})
 
 	t.Run("should verify user when verification token is valid", func(t *testing.T) {
 		user, _ := NewUser("example@domain.com", "Ruan", "12345678")
 		err := user.Verify(*user.VerificationToken)
-
-		if err != nil {
-			t.Error("should not get error when verification token is valid")
-		}
-
-		if !user.IsVerified {
-			t.Error("should verify user when verification token is valid")
-		}
-
-		if user.VerificationToken != nil {
-			t.Error("should delete verification token when already used")
-		}
+		require.Nil(t, err)
+		require.True(t, user.IsVerified)
+		require.Nil(t, user.VerificationToken)
 	})
 }
 
@@ -157,27 +96,30 @@ func TestUserChangeName(t *testing.T) {
 		user, _ := NewUser("example@domain.com", "Ruan", "12345678")
 
 		err := user.ChangeName("")
-		if err == nil || err.Error() != "[user] Name is required" {
-			t.Error("should return error when name is blank")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "[user] Name is required", err.Error())
 
 		err = user.ChangeName("n")
-		if err == nil || err.Error() != "[user] Name too short" {
-			t.Error("should return error when name is too short")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "[user] Name too short", err.Error())
+	})
+
+	t.Run("should change name when provided name is valid", func(t *testing.T) {
+		user, _ := NewUser("example@domain.com", "Ruan", "12345678")
+
+		err := user.ChangeName("Ruan Scherer")
+		require.Nil(t, err)
+		require.Equal(t, "Ruan Scherer", user.Name)
 	})
 }
 
 func TestRequestPasswordReset(t *testing.T) {
 	user, _ := NewUser("example@domain.com", "Ruan", "12345678")
-	if user.PasswordResetToken != nil {
-		t.Error("should not have password reset token by default")
-	}
+	require.Nil(t, user.PasswordResetToken)
 
 	user.RequestPasswordReset()
-	if user.PasswordResetToken == nil || *user.PasswordResetToken == "" {
-		t.Error("should have password reset token after request")
-	}
+	require.NotNil(t, user.PasswordResetToken)
+	require.NotEmpty(t, *user.PasswordResetToken)
 }
 
 func TestResetPassword(t *testing.T) {
@@ -185,9 +127,8 @@ func TestResetPassword(t *testing.T) {
 		user, _ := NewUser("example@domain.com", "Ruan", "12345678")
 
 		err := user.ResetPassword("new password", "")
-		if err == nil || err.Error() != "user has no request for password reset" {
-			t.Error("should return error when there's no request for password reset")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "user has no request for password reset", err.Error())
 	})
 
 	t.Run("should return error when password reset token is invalid", func(t *testing.T) {
@@ -195,9 +136,8 @@ func TestResetPassword(t *testing.T) {
 		user.RequestPasswordReset()
 
 		err := user.ResetPassword("new password", "invalid token")
-		if err == nil || err.Error() != "invalid password reset token" {
-			t.Error("should return error when password reset token is invalid")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "invalid password reset token", err.Error())
 	})
 
 	t.Run("should get error when provided password is invalid", func(t *testing.T) {
@@ -205,14 +145,12 @@ func TestResetPassword(t *testing.T) {
 		user.RequestPasswordReset()
 
 		err := user.ResetPassword("", *user.PasswordResetToken)
-		if err == nil || err.Error() != "[user] Password is required" {
-			t.Error("should return error when password is blank")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "[user] Password is required", err.Error())
 
 		err = user.ResetPassword("1234567", *user.PasswordResetToken)
-		if err == nil || err.Error() != "[user] Password too short" {
-			t.Error("should return error when password is too short")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "[user] Password too short", err.Error())
 	})
 
 	t.Run("should reset password when password reset token is valid", func(t *testing.T) {
@@ -220,8 +158,6 @@ func TestResetPassword(t *testing.T) {
 		user.RequestPasswordReset()
 
 		err := user.ResetPassword("new password", *user.PasswordResetToken)
-		if err != nil {
-			t.Error("should reset password when password reset token is valid")
-		}
+		require.Nil(t, err)
 	})
 }

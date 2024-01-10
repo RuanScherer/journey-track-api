@@ -1,23 +1,22 @@
 package model
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 func TestNewProjectInvite(t *testing.T) {
 	t.Run("should get error when provided project is invalid", func(t *testing.T) {
 		_, err := NewProjectInvite(&Project{}, &User{})
-		if err == nil {
-			t.Error("should get error when provided project is invalid")
-		}
+		require.NotNil(t, err)
 	})
 
 	t.Run("should get error when provided user is invalid", func(t *testing.T) {
 		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
 		project, _ := NewProject("test", projectOwner)
 		_, err := NewProjectInvite(project, &User{})
-
-		if err == nil {
-			t.Error("should get error when provided user is invalid")
-		}
+		require.NotNil(t, err)
 	})
 
 	t.Run("should get error when user is already a member", func(t *testing.T) {
@@ -27,17 +26,14 @@ func TestNewProjectInvite(t *testing.T) {
 
 		userToInvite, _ := NewUser("member@example.com", "Member", "pass4321")
 		invite, err := NewProjectInvite(project, userToInvite)
-		if err != nil {
-			t.Error("should return project invite when provided project and user are valid")
-		}
+		require.Nil(t, err)
 
 		invite.Accept(*invite.Token)
 		project.Members = append(project.Members, userToInvite)
 
 		_, err = NewProjectInvite(project, userToInvite)
-		if err == nil || err.Error() != "user is already a member of the project" {
-			t.Error("should get error when user is already a member")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "user is already a member of the project", err.Error())
 	})
 
 	t.Run("should return project invite when provided project and user are valid", func(t *testing.T) {
@@ -46,37 +42,11 @@ func TestNewProjectInvite(t *testing.T) {
 		project, _ := NewProject("test", projectOwner)
 
 		userToInvite, _ := NewUser("member@example.com", "Member", "pass4321")
-		_, err := NewProjectInvite(project, userToInvite)
-
-		if err != nil {
-			t.Error("should return project invite when provided project and user are valid")
-		}
-	})
-
-	t.Run("should return project invite with pending status", func(t *testing.T) {
-		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
-		projectOwner.Verify(*projectOwner.VerificationToken)
-		project, _ := NewProject("test", projectOwner)
-
-		userToInvite, _ := NewUser("member@example.com", "Member", "pass4321")
-		invite, _ := NewProjectInvite(project, userToInvite)
-
-		if invite.Status != ProjectInviteStatusPending {
-			t.Error("should return project invite with pending status")
-		}
-	})
-
-	t.Run("should return project invite with token", func(t *testing.T) {
-		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
-		projectOwner.Verify(*projectOwner.VerificationToken)
-		project, _ := NewProject("test", projectOwner)
-
-		userToInvite, _ := NewUser("member@example.com", "Member", "pass4321")
-		invite, _ := NewProjectInvite(project, userToInvite)
-
-		if invite.Token == nil || *invite.Token == "" {
-			t.Error("should return project invite with token")
-		}
+		invite, err := NewProjectInvite(project, userToInvite)
+		require.Nil(t, err)
+		require.Equal(t, ProjectInviteStatusPending, invite.Status)
+		require.NotNil(t, invite.Token)
+		require.NotEmpty(t, *invite.Token)
 	})
 }
 
@@ -90,12 +60,11 @@ func TestAccept(t *testing.T) {
 		invite, _ := NewProjectInvite(project, userToInvite)
 
 		err := invite.Accept("invalid-token")
-		if err == nil || err.Error() != "invalid token provided to answer invite" {
-			t.Error("should get error when provided token is invalid")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "invalid token provided to answer invite", err.Error())
 	})
 
-	t.Run("should get error when invited is not pending", func(t *testing.T) {
+	t.Run("should get error when invite is not pending", func(t *testing.T) {
 		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
 		projectOwner.Verify(*projectOwner.VerificationToken)
 		project, _ := NewProject("test", projectOwner)
@@ -105,9 +74,8 @@ func TestAccept(t *testing.T) {
 		invite.Status = ProjectInviteStatusAccepted
 
 		err := invite.Accept(*invite.Token)
-		if err == nil || err.Error() != "invite already answered or revoked" {
-			t.Error("should get error when invited is not pending")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "invite already answered or revoked", err.Error())
 	})
 
 	t.Run("should accept invite", func(t *testing.T) {
@@ -119,13 +87,8 @@ func TestAccept(t *testing.T) {
 		invite, _ := NewProjectInvite(project, userToInvite)
 
 		err := invite.Accept(*invite.Token)
-		if err != nil {
-			t.Error("should accept invite")
-		}
-
-		if invite.Status != ProjectInviteStatusAccepted {
-			t.Error("should have accepted status after accepting invite")
-		}
+		require.Nil(t, err)
+		require.Equal(t, ProjectInviteStatusAccepted, invite.Status)
 	})
 }
 
@@ -139,9 +102,8 @@ func TestDecline(t *testing.T) {
 		invite, _ := NewProjectInvite(project, userToInvite)
 
 		err := invite.Decline("invalid-token")
-		if err == nil || err.Error() != "invalid token provided to answer invite" {
-			t.Error("should get error when provided token is invalid")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "invalid token provided to answer invite", err.Error())
 	})
 
 	t.Run("should get error when invited is not pending", func(t *testing.T) {
@@ -154,9 +116,8 @@ func TestDecline(t *testing.T) {
 		invite.Status = ProjectInviteStatusAccepted
 
 		err := invite.Decline(*invite.Token)
-		if err == nil || err.Error() != "invite already answered or revoked" {
-			t.Error("should get error when invited is not pending")
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "invite already answered or revoked", err.Error())
 	})
 
 	t.Run("should decline invite", func(t *testing.T) {
@@ -168,13 +129,8 @@ func TestDecline(t *testing.T) {
 		invite, _ := NewProjectInvite(project, userToInvite)
 
 		err := invite.Decline(*invite.Token)
-		if err != nil {
-			t.Error("should decline invite")
-		}
-
-		if invite.Status != ProjectInviteStatusDeclined {
-			t.Error("should have declined status after accepting invite")
-		}
+		require.Nil(t, err)
+		require.Equal(t, ProjectInviteStatusDeclined, invite.Status)
 	})
 }
 
@@ -189,21 +145,13 @@ func TestCanRevoke(t *testing.T) {
 
 		invite.Status = ProjectInviteStatusAccepted
 		canRevoke, reason := invite.CanRevoke()
-		if canRevoke {
-			t.Error("should not be able to revoke when invite is accepted")
-		}
-		if reason != "invite already answered or revoked" {
-			t.Error("should return correct reason")
-		}
+		require.False(t, canRevoke)
+		require.Equal(t, "invite already answered or revoked", reason)
 
 		invite.Status = ProjectInviteStatusDeclined
 		canRevoke, reason = invite.CanRevoke()
-		if canRevoke {
-			t.Error("should not be able to revoke when invite is accepted")
-		}
-		if reason != "invite already answered or revoked" {
-			t.Error("should return correct reason")
-		}
+		require.False(t, canRevoke)
+		require.Equal(t, "invite already answered or revoked", reason)
 	})
 
 	t.Run("should be able to revoke", func(t *testing.T) {
@@ -214,8 +162,8 @@ func TestCanRevoke(t *testing.T) {
 		userToInvite, _ := NewUser("member@example.com", "Member", "pass4321")
 		invite, _ := NewProjectInvite(project, userToInvite)
 
-		if canRevoke, _ := invite.CanRevoke(); !canRevoke {
-			t.Error("should be able to revoke")
-		}
+		canRevoke, reason := invite.CanRevoke()
+		require.True(t, canRevoke)
+		require.Empty(t, reason)
 	})
 }
