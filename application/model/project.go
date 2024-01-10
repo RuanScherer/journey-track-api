@@ -12,6 +12,7 @@ type CreateProjectResponse struct {
 }
 
 type EditProjectRequest struct {
+	ActorID   string `json:"-"`
 	ProjectID string `json:"project_id"`
 	Name      string `json:"name"`
 }
@@ -22,11 +23,22 @@ type EditProjectResponse struct {
 	OwnerID string `json:"owner_id"`
 }
 
+type ShowProjectRequest struct {
+	ActorID   string `json:"-"`
+	ProjectID string `json:"project_id"`
+}
+
 type ShowProjectResponse struct {
-	ID      string              `json:"id"`
-	Name    string              `json:"name"`
-	OwnerID string              `json:"owner_id"`
-	Members []*ShowUserResponse `json:"members"`
+	ID      string           `json:"id"`
+	Name    string           `json:"name"`
+	OwnerID string           `json:"owner_id"`
+	Members []*ProjectMember `json:"members"`
+}
+
+type ProjectMember struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
 type ListProjectByMemberResponse = []*ProjectByMember
@@ -37,7 +49,13 @@ type ProjectByMember struct {
 	OwnerID string `json:"owner_id"`
 }
 
+type DeleteProjectRequest struct {
+	ActorID   string `json:"-"`
+	ProjectID string `json:"project_id"`
+}
+
 type InviteProjectMemberRequest struct {
+	ActorID   string `json:"-"`
 	ProjectID string `json:"project_id"`
 	UserID    string `json:"user_id"`
 }
@@ -63,6 +81,11 @@ type InviteUser struct {
 type AnswerProjectInviteRequest struct {
 	ProjectID   string `json:"project_id"`
 	InviteToken string `json:"invite_token"`
+}
+
+type RevokeProjectInviteRequest struct {
+	ActorID         string `json:"-"`
+	ProjectInviteID string `json:"project_invite_id"`
 }
 
 type RegisterEventRequest struct {

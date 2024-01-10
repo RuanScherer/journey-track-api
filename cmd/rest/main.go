@@ -7,6 +7,7 @@ import (
 	"github.com/RuanScherer/journey-track-api/application/rest/middlewares"
 	"github.com/RuanScherer/journey-track-api/config"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
 func StartAPI() {
@@ -15,6 +16,7 @@ func StartAPI() {
 		AppName:      "Journey Track API",
 		ErrorHandler: middlewares.HandleError,
 	})
+	app.Use(logger.New())
 	rest.RegisterRoutes(app)
 	app.Listen(fmt.Sprintf(":%v", appConfig.RestApiPort))
 }

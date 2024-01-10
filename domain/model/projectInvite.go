@@ -94,3 +94,10 @@ func (projectInvite *ProjectInvite) answer(answer string, token string) error {
 	_, err := govalidator.ValidateStruct(projectInvite)
 	return err
 }
+
+func (projectInvite *ProjectInvite) CanRevoke() (bool, string) {
+	if projectInvite.Status != ProjectInviteStatusPending {
+		return false, "invite already answered or revoked"
+	}
+	return true, ""
+}

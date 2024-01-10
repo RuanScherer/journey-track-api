@@ -18,7 +18,7 @@ func RegisterRoutes(app *fiber.App) {
 	eventRepository := repository.NewEventDBRepository(dbConn)
 
 	userUseCase := usecase.NewUserUseCase(userRepository)
-	_ = usecase.NewProjectUseCase(
+	projectUseCase := usecase.NewProjectUseCase(
 		projectRepository,
 		userRepository,
 		projectInviteRepository,
@@ -26,6 +26,7 @@ func RegisterRoutes(app *fiber.App) {
 	)
 
 	userHandler := handlers.NewUserHandler(*userUseCase)
+	projectHandler := handlers.NewProjectHandler(*projectUseCase)
 
 	api := app.Group("api")
 	v1 := api.Group("v1")
@@ -42,4 +43,15 @@ func RegisterRoutes(app *fiber.App) {
 
 	v1.Put("/users/edit-profile", userHandler.EditUser)
 	v1.Get("/users/profile", userHandler.ShowUser)
+
+	v1.Post("/projects/create", projectHandler.CreateProject)
+	v1.Put("/projects/:id/edit", projectHandler.EditProject)
+	v1.Get("/projects/:id", projectHandler.ShowProject)
+	v1.Get("/projects", projectHandler.ListProjectsByMember)
+	v1.Delete("/projects/:id", projectHandler.DeleteProject)
+
+	v1.Post("/projects/:projectId/invite/:userId", projectHandler.InviteProjectMember)
+	v1.Patch("/projects/:projectId/invites/accept", projectHandler.AcceptProjectInvite)
+	v1.Patch("/projects/:projectId/invites/decline", projectHandler.DeclineProjectInvite)
+	v1.Delete("/projects/invites/:id/revoke", projectHandler.RevokeProjectInvite)
 }

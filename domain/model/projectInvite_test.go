@@ -177,3 +177,45 @@ func TestDecline(t *testing.T) {
 		}
 	})
 }
+
+func TestCanRevoke(t *testing.T) {
+	t.Run("should not be able to revoke", func(t *testing.T) {
+		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
+		projectOwner.Verify(*projectOwner.VerificationToken)
+		project, _ := NewProject("test", projectOwner)
+
+		userToInvite, _ := NewUser("member@example.com", "Member", "pass4321")
+		invite, _ := NewProjectInvite(project, userToInvite)
+
+		invite.Status = ProjectInviteStatusAccepted
+		canRevoke, reason := invite.CanRevoke()
+		if canRevoke {
+			t.Error("should not be able to revoke when invite is accepted")
+		}
+		if reason != "invite already answered or revoked" {
+			t.Error("should return correct reason")
+		}
+
+		invite.Status = ProjectInviteStatusDeclined
+		canRevoke, reason = invite.CanRevoke()
+		if canRevoke {
+			t.Error("should not be able to revoke when invite is accepted")
+		}
+		if reason != "invite already answered or revoked" {
+			t.Error("should return correct reason")
+		}
+	})
+
+	t.Run("should be able to revoke", func(t *testing.T) {
+		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
+		projectOwner.Verify(*projectOwner.VerificationToken)
+		project, _ := NewProject("test", projectOwner)
+
+		userToInvite, _ := NewUser("member@example.com", "Member", "pass4321")
+		invite, _ := NewProjectInvite(project, userToInvite)
+
+		if canRevoke, _ := invite.CanRevoke(); !canRevoke {
+			t.Error("should be able to revoke")
+		}
+	})
+}

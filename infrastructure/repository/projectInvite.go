@@ -22,14 +22,15 @@ func (repository *ProjectInviteDBRepository) Save(projectInvite *model.ProjectIn
 }
 
 func (repository *ProjectInviteDBRepository) DeleteById(projectInviteId string) error {
-	return repository.DB.Delete(&model.ProjectInvite{}, projectInviteId).Error
+	err := repository.DB.Where("id = ?", projectInviteId).Delete(&model.ProjectInvite{}).Error
+	return err
 }
 
 func (repository *ProjectInviteDBRepository) FindById(projectInviteId string) (*model.ProjectInvite, error) {
 	projectInvite := &model.ProjectInvite{}
 	err := repository.DB.
 		Preload("User").
-		Preload("Project").
+		Preload("Project.Members").
 		Where("id = ?", projectInviteId).
 		First(projectInvite).Error
 

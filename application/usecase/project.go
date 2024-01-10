@@ -32,17 +32,24 @@ func NewProjectUseCase(
 func (useCase *ProjectUseCase) CreateProject(req *appmodel.CreateProjectRequest) (*appmodel.CreateProjectResponse, error) {
 	ownerUser, err := useCase.userRepository.FindById(req.OwnerID)
 	if err != nil {
-		return nil, err
+		if err == gorm.ErrRecordNotFound {
+			return nil, appmodel.NewAppError(
+				"project_owner_not_found",
+				"project owner not found",
+				appmodel.ErrorTypeValidation,
+			)
+		}
+		return nil, appmodel.NewAppError("unable_to_find_project_owner", err.Error(), appmodel.ErrorTypeDatabase)
 	}
 
 	project, err := model.NewProject(req.Name, ownerUser)
 	if err != nil {
-		return nil, err
+		return nil, appmodel.NewAppError("unable_to_create_project", err.Error(), appmodel.ErrorTypeValidation)
 	}
 
 	err = useCase.projectRepository.Register(project)
 	if err != nil {
-		return nil, err
+		return nil, appmodel.NewAppError("unable_to_save_project", "unable to save project", appmodel.ErrorTypeDatabase)
 	}
 
 	return &appmodel.CreateProjectResponse{
@@ -55,17 +62,32 @@ func (useCase *ProjectUseCase) CreateProject(req *appmodel.CreateProjectRequest)
 func (useCase *ProjectUseCase) EditProject(req *appmodel.EditProjectRequest) (*appmodel.EditProjectResponse, error) {
 	project, err := useCase.projectRepository.FindById(req.ProjectID)
 	if err != nil {
-		return nil, err
+		if err == gorm.ErrRecordNotFound {
+			return nil, appmodel.NewAppError("project_not_found", "project not found", appmodel.ErrorTypeValidation)
+		}
+		return nil, appmodel.NewAppError("unable_to_find_project", err.Error(), appmodel.ErrorTypeDatabase)
+	}
+
+	if project.OwnerID != req.ActorID {
+		return nil, appmodel.NewAppError(
+			"not_project_owner",
+			"only project owner can edit project",
+			appmodel.ErrorTypeValidation,
+		)
 	}
 
 	err = project.ChangeName(req.Name)
 	if err != nil {
-		return nil, err
+		return nil, appmodel.NewAppError("unable_to_edit_project", err.Error(), appmodel.ErrorTypeValidation)
 	}
 
 	err = useCase.projectRepository.Save(project)
 	if err != nil {
-		return nil, err
+		return nil, appmodel.NewAppError(
+			"unable_to_save_project_changes",
+			"unable to save project changes",
+			appmodel.ErrorTypeDatabase,
+		)
 	}
 
 	return &appmodel.EditProjectResponse{
@@ -75,19 +97,39 @@ func (useCase *ProjectUseCase) EditProject(req *appmodel.EditProjectRequest) (*a
 	}, nil
 }
 
-func (useCase *ProjectUseCase) ShowProject(projectId string) (*appmodel.ShowProjectResponse, error) {
-	project, err := useCase.projectRepository.FindById(projectId)
+func (useCase *ProjectUseCase) ShowProject(req *appmodel.ShowProjectRequest) (*appmodel.ShowProjectResponse, error) {
+	project, err := useCase.projectRepository.FindById(req.ProjectID)
 	if err != nil {
-		return nil, err
+		if err == gorm.ErrRecordNotFound {
+			return nil, appmodel.NewAppError("project_not_found", "project not found", appmodel.ErrorTypeValidation)
+		}
+		return nil, appmodel.NewAppError("unable_to_find_project", err.Error(), appmodel.ErrorTypeDatabase)
 	}
 
-	var members []*appmodel.ShowUserResponse
+	actor, err := useCase.userRepository.FindById(req.ActorID)
+	if err != nil {
+		return nil, appmodel.NewAppError(
+			"unable_to_identify_user",
+			"unable to identify the user trying to see project details",
+			appmodel.ErrorTypeDatabase,
+		)
+	}
+
+	isMember := project.HasMember(actor)
+	if !isMember {
+		return nil, appmodel.NewAppError(
+			"not_project_member",
+			"only project members can see project details",
+			appmodel.ErrorTypeValidation,
+		)
+	}
+
+	var members []*appmodel.ProjectMember
 	for _, m := range project.Members {
-		member := &appmodel.ShowUserResponse{
-			ID:         m.ID,
-			Email:      *m.Email,
-			Name:       m.Name,
-			IsVerified: m.IsVerified,
+		member := &appmodel.ProjectMember{
+			ID:    m.ID,
+			Email: *m.Email,
+			Name:  m.Name,
 		}
 		members = append(members, member)
 	}
@@ -103,7 +145,10 @@ func (useCase *ProjectUseCase) ShowProject(projectId string) (*appmodel.ShowProj
 func (useCase *ProjectUseCase) ListProjectsByMember(memberId string) (*appmodel.ListProjectByMemberResponse, error) {
 	projects, err := useCase.projectRepository.FindByMemberId(memberId)
 	if err != nil {
-		return nil, err
+		if err == gorm.ErrRecordNotFound {
+			return &appmodel.ListProjectByMemberResponse{}, nil
+		}
+		return nil, appmodel.NewAppError("unable_to_find_projects", err.Error(), appmodel.ErrorTypeDatabase)
 	}
 
 	var projectsResponse appmodel.ListProjectByMemberResponse
@@ -119,39 +164,90 @@ func (useCase *ProjectUseCase) ListProjectsByMember(memberId string) (*appmodel.
 	return &projectsResponse, nil
 }
 
-func (useCase *ProjectUseCase) DeleteProject(projectId string) error {
-	err := useCase.projectRepository.DeleteById(projectId)
-	return err
+func (useCase *ProjectUseCase) DeleteProject(req *appmodel.DeleteProjectRequest) error {
+	project, err := useCase.projectRepository.FindById(req.ProjectID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return appmodel.NewAppError("project_not_found", "project not found", appmodel.ErrorTypeValidation)
+		}
+		return appmodel.NewAppError("unable_to_find_project", err.Error(), appmodel.ErrorTypeDatabase)
+	}
+
+	if project.OwnerID != req.ActorID {
+		return appmodel.NewAppError(
+			"not_project_owner",
+			"only project owner can delete project",
+			appmodel.ErrorTypeValidation,
+		)
+	}
+
+	err = useCase.projectRepository.DeleteById(req.ProjectID)
+	if err != nil {
+		return appmodel.NewAppError("unable_to_delete_project", err.Error(), appmodel.ErrorTypeDatabase)
+	}
+	return nil
 }
 
 func (useCase *ProjectUseCase) InviteMember(req *appmodel.InviteProjectMemberRequest) (*appmodel.InviteProjectMemberResponse, error) {
 	project, err := useCase.projectRepository.FindById(req.ProjectID)
 	if err != nil {
-		return nil, err
+		if err == gorm.ErrRecordNotFound {
+			return nil, appmodel.NewAppError("project_not_found", "project not found", appmodel.ErrorTypeValidation)
+		}
+		return nil, appmodel.NewAppError("unable_to_find_project", err.Error(), appmodel.ErrorTypeDatabase)
+	}
+
+	actor, err := useCase.userRepository.FindById(req.ActorID)
+	if err != nil {
+		return nil, appmodel.NewAppError(
+			"unable_to_identify_user",
+			"unable to identify the user trying to invite a member",
+			appmodel.ErrorTypeDatabase,
+		)
+	}
+
+	isMember := project.HasMember(actor)
+	if !isMember {
+		return nil, appmodel.NewAppError(
+			"not_project_member",
+			"only project members can invite members",
+			appmodel.ErrorTypeValidation,
+		)
 	}
 
 	user, err := useCase.userRepository.FindById(req.UserID)
 	if err != nil {
-		return nil, err
+		if err == gorm.ErrRecordNotFound {
+			return nil, appmodel.NewAppError("user_not_found", "user not found", appmodel.ErrorTypeValidation)
+		}
+		return nil, appmodel.NewAppError("unable_to_find_user", err.Error(), appmodel.ErrorTypeDatabase)
 	}
 
 	existentInvite, err := useCase.projectInviteRepository.FindPendingByUserAndProject(user.ID, project.ID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, err
+		return nil, appmodel.NewAppError(
+			"unable_to_check_pending_invites",
+			err.Error(),
+			appmodel.ErrorTypeDatabase,
+		)
 	}
 
 	if existentInvite != nil {
-		return nil, errors.New("user already invited to the project")
+		return nil, appmodel.NewAppError(
+			"user_already_invited",
+			"user already invited to the project",
+			appmodel.ErrorTypeValidation,
+		)
 	}
 
 	projectInvite, err := model.NewProjectInvite(project, user)
 	if err != nil {
-		return nil, err
+		return nil, appmodel.NewAppError("unable_to_invite_user", err.Error(), appmodel.ErrorTypeValidation)
 	}
 
 	err = useCase.projectInviteRepository.Create(projectInvite)
 	if err != nil {
-		return nil, err
+		return nil, appmodel.NewAppError("unable_to_save_invite", err.Error(), appmodel.ErrorTypeDatabase)
 	}
 
 	return &appmodel.InviteProjectMemberResponse{
@@ -172,32 +268,38 @@ func (useCase *ProjectUseCase) InviteMember(req *appmodel.InviteProjectMemberReq
 func (useCase *ProjectUseCase) AcceptInvite(req *appmodel.AnswerProjectInviteRequest) error {
 	projectInvite, err := useCase.projectInviteRepository.FindByProjectAndToken(req.ProjectID, req.InviteToken)
 	if err != nil {
-		return err
+		if err == gorm.ErrRecordNotFound {
+			return appmodel.NewAppError("project_invite_not_found", "project invite not found", appmodel.ErrorTypeValidation)
+		}
+		return appmodel.NewAppError("unable_to_find_project_invite", err.Error(), appmodel.ErrorTypeDatabase)
 	}
 
 	err = projectInvite.Accept(req.InviteToken)
 	if err != nil {
-		return err
+		return appmodel.NewAppError("unable_to_accept_project_invite", err.Error(), appmodel.ErrorTypeValidation)
 	}
 
 	err = useCase.projectInviteRepository.Save(projectInvite)
 	if err != nil {
-		return err
+		return appmodel.NewAppError("unable_to_save_project_invite_answer", err.Error(), appmodel.ErrorTypeDatabase)
 	}
 
 	project, err := useCase.projectRepository.FindById(projectInvite.Project.ID)
 	if err != nil {
-		return err
+		if err == gorm.ErrRecordNotFound {
+			return appmodel.NewAppError("project_not_found", "project not found", appmodel.ErrorTypeValidation)
+		}
+		return appmodel.NewAppError("unable_to_find_project", err.Error(), appmodel.ErrorTypeDatabase)
 	}
 
 	err = project.AddMember(projectInvite.User)
 	if err != nil {
-		return err
+		return appmodel.NewAppError("unable_to_add_project_member", err.Error(), appmodel.ErrorTypeValidation)
 	}
 
 	err = useCase.projectRepository.Save(project)
 	if err != nil {
-		return err
+		return appmodel.NewAppError("unable_to_save_project_changes", err.Error(), appmodel.ErrorTypeDatabase)
 	}
 
 	return nil
@@ -206,39 +308,65 @@ func (useCase *ProjectUseCase) AcceptInvite(req *appmodel.AnswerProjectInviteReq
 func (useCase *ProjectUseCase) DeclineInvite(req *appmodel.AnswerProjectInviteRequest) error {
 	projectInvite, err := useCase.projectInviteRepository.FindByProjectAndToken(req.ProjectID, req.InviteToken)
 	if err != nil {
-		return err
+		if err == gorm.ErrRecordNotFound {
+			return appmodel.NewAppError("project_invite_not_found", "project invite not found", appmodel.ErrorTypeValidation)
+		}
+		return appmodel.NewAppError("unable_to_find_project_invite", err.Error(), appmodel.ErrorTypeDatabase)
 	}
 
 	err = projectInvite.Decline(req.InviteToken)
 	if err != nil {
-		return err
+		return appmodel.NewAppError("unable_to_decline_project_invite", err.Error(), appmodel.ErrorTypeValidation)
 	}
 
 	err = useCase.projectInviteRepository.Save(projectInvite)
 	if err != nil {
-		return err
+		return appmodel.NewAppError("unable_to_save_project_invite_answer", err.Error(), appmodel.ErrorTypeDatabase)
 	}
 
 	return nil
 }
 
-func (useCase *ProjectUseCase) RevokeInvite(projectInviteId string) error {
-	projectInvite, err := useCase.projectInviteRepository.FindById(projectInviteId)
+func (useCase *ProjectUseCase) RevokeInvite(req *appmodel.RevokeProjectInviteRequest) error {
+	projectInvite, err := useCase.projectInviteRepository.FindById(req.ProjectInviteID)
 	if err != nil {
-		return err
+		if err == gorm.ErrRecordNotFound {
+			return appmodel.NewAppError("project_invite_not_found", "project invite not found", appmodel.ErrorTypeValidation)
+		}
+		return appmodel.NewAppError("unable_to_find_project_invite", err.Error(), appmodel.ErrorTypeDatabase)
 	}
 
-	var sessionUser *model.User // TODO: should get authenticated user instead
-	isActorProjectMember := projectInvite.Project.HasMember(sessionUser)
+	canRevoke, reason := projectInvite.CanRevoke()
+	if !canRevoke {
+		return appmodel.NewAppError(
+			"unable_to_revoke_project_invite",
+			reason,
+			appmodel.ErrorTypeValidation,
+		)
+	}
+
+	actor, err := useCase.userRepository.FindById(req.ActorID)
+	if err != nil {
+		return appmodel.NewAppError(
+			"unable_to_identify_user",
+			"unable to identify the user trying to see project details",
+			appmodel.ErrorTypeDatabase,
+		)
+	}
+
+	isActorProjectMember := projectInvite.Project.HasMember(actor)
 	if !isActorProjectMember {
-		return errors.New("only members of the project can revoke invites")
+		return appmodel.NewAppError(
+			"not_project_member",
+			"only project members can revoke invites",
+			appmodel.ErrorTypeValidation,
+		)
 	}
 
-	err = useCase.projectInviteRepository.DeleteById(projectInviteId)
+	err = useCase.projectInviteRepository.DeleteById(req.ProjectInviteID)
 	if err != nil {
-		return err
+		return appmodel.NewAppError("unable_to_delete_project_invite", err.Error(), appmodel.ErrorTypeDatabase)
 	}
-
 	return nil
 }
 
