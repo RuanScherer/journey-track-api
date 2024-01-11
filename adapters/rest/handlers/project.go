@@ -4,6 +4,7 @@ import (
 	"github.com/RuanScherer/journey-track-api/adapters/rest/model"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
+	"github.com/RuanScherer/journey-track-api/application/utils"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -20,6 +21,11 @@ func (handler *ProjectHandler) CreateProject(ctx *fiber.Ctx) error {
 	err := ctx.BodyParser(req)
 	if err != nil {
 		return model.NewRestApiError(fiber.StatusBadRequest, appmodel.ErrInvalidReqData)
+	}
+
+	err = utils.ValidateRequestBody(req)
+	if err != nil {
+		return err
 	}
 
 	res, err := handler.projectUseCase.CreateProject(req)
@@ -39,6 +45,12 @@ func (handler *ProjectHandler) EditProject(ctx *fiber.Ctx) error {
 
 	req.ActorID = ctx.Locals("sessionUser").(appmodel.AuthUser).ID
 	req.ProjectID = ctx.Params("id")
+
+	err = utils.ValidateRequestBody(req)
+	if err != nil {
+		return err
+	}
+
 	res, err := handler.projectUseCase.EditProject(req)
 	if err != nil {
 		return err
@@ -51,6 +63,11 @@ func (handler *ProjectHandler) ShowProject(ctx *fiber.Ctx) error {
 	req := &appmodel.ShowProjectRequest{
 		ActorID:   ctx.Locals("sessionUser").(appmodel.AuthUser).ID,
 		ProjectID: ctx.Params("id"),
+	}
+
+	err := utils.ValidateRequestBody(req)
+	if err != nil {
+		return err
 	}
 
 	res, err := handler.projectUseCase.ShowProject(req)
@@ -82,7 +99,12 @@ func (handler *ProjectHandler) DeleteProject(ctx *fiber.Ctx) error {
 		ProjectID: ctx.Params("id"),
 	}
 
-	err := handler.projectUseCase.DeleteProject(req)
+	err := utils.ValidateRequestBody(req)
+	if err != nil {
+		return err
+	}
+
+	err = handler.projectUseCase.DeleteProject(req)
 	if err != nil {
 		return err
 	}
@@ -98,6 +120,11 @@ func (handler *ProjectHandler) InviteProjectMember(ctx *fiber.Ctx) error {
 		UserID:    ctx.Params("userId"),
 	}
 
+	err := utils.ValidateRequestBody(req)
+	if err != nil {
+		return err
+	}
+
 	invite, err := handler.projectUseCase.InviteMember(req)
 	if err != nil {
 		return err
@@ -111,8 +138,13 @@ func (handler *ProjectHandler) AcceptProjectInvite(ctx *fiber.Ctx) error {
 	if err != nil {
 		return model.NewRestApiError(fiber.StatusBadRequest, appmodel.ErrInvalidReqData)
 	}
-
 	req.ProjectID = ctx.Params("projectId")
+
+	err = utils.ValidateRequestBody(req)
+	if err != nil {
+		return err
+	}
+
 	err = handler.projectUseCase.AcceptInvite(req)
 	if err != nil {
 		return err
@@ -128,8 +160,13 @@ func (handler *ProjectHandler) DeclineProjectInvite(ctx *fiber.Ctx) error {
 	if err != nil {
 		return model.NewRestApiError(fiber.StatusBadRequest, appmodel.ErrInvalidReqData)
 	}
-
 	req.ProjectID = ctx.Params("projectId")
+
+	err = utils.ValidateRequestBody(req)
+	if err != nil {
+		return err
+	}
+
 	err = handler.projectUseCase.DeclineInvite(req)
 	if err != nil {
 		return err
@@ -145,7 +182,12 @@ func (handler *ProjectHandler) RevokeProjectInvite(ctx *fiber.Ctx) error {
 		ProjectInviteID: ctx.Params("id"),
 	}
 
-	err := handler.projectUseCase.RevokeInvite(req)
+	err := utils.ValidateRequestBody(req)
+	if err != nil {
+		return err
+	}
+
+	err = handler.projectUseCase.RevokeInvite(req)
 	if err != nil {
 		return err
 	}

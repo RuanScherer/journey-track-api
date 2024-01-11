@@ -4,6 +4,7 @@ import (
 	"github.com/RuanScherer/journey-track-api/adapters/rest/model"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
+	"github.com/RuanScherer/journey-track-api/application/utils"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -22,6 +23,11 @@ func (handler *UserHandler) RegisterUser(ctx *fiber.Ctx) error {
 		return model.NewRestApiError(fiber.StatusBadRequest, appmodel.ErrInvalidReqData)
 	}
 
+	err = utils.ValidateRequestBody(registerUserRequest)
+	if err != nil {
+		return err
+	}
+
 	registerUserResponse, appErr := handler.userUseCase.RegisterUser(registerUserRequest)
 	if appErr != nil {
 		return appErr
@@ -34,13 +40,19 @@ func (handler *UserHandler) RegisterUser(ctx *fiber.Ctx) error {
 func (handler *UserHandler) VerifyUser(ctx *fiber.Ctx) error {
 	userId := ctx.Params("id")
 	token := ctx.Params("token")
-
-	err := handler.userUseCase.VerifyUser(&appmodel.VerifyUserRequest{
+	verifyUserRequest := &appmodel.VerifyUserRequest{
 		UserID:            userId,
 		VerificationToken: token,
-	})
+	}
+
+	err := utils.ValidateRequestBody(verifyUserRequest)
 	if err != nil {
 		return err
+	}
+
+	appErr := handler.userUseCase.VerifyUser(verifyUserRequest)
+	if appErr != nil {
+		return appErr
 	}
 
 	ctx.Status(fiber.StatusOK)
@@ -52,6 +64,11 @@ func (handler *UserHandler) SignIn(ctx *fiber.Ctx) error {
 	err := ctx.BodyParser(signInRequest)
 	if err != nil {
 		return model.NewRestApiError(fiber.StatusBadRequest, appmodel.ErrInvalidReqData)
+	}
+
+	err = utils.ValidateRequestBody(signInRequest)
+	if err != nil {
+		return err
 	}
 
 	signInResponse, appErr := handler.userUseCase.SignIn(signInRequest)
@@ -74,8 +91,13 @@ func (handler *UserHandler) EditUser(ctx *fiber.Ctx) error {
 	if err != nil {
 		return model.NewRestApiError(fiber.StatusBadRequest, appmodel.ErrInvalidReqData)
 	}
-
 	editUserRequest.UserID = ctx.Locals("sessionUser").(appmodel.AuthUser).ID
+
+	err = utils.ValidateRequestBody(editUserRequest)
+	if err != nil {
+		return err
+	}
+
 	response, appErr := handler.userUseCase.EditUser(editUserRequest)
 	if appErr != nil {
 		return appErr
@@ -88,6 +110,11 @@ func (handler *UserHandler) RequestPasswordReset(ctx *fiber.Ctx) error {
 	err := ctx.BodyParser(req)
 	if err != nil {
 		return model.NewRestApiError(fiber.StatusBadRequest, appmodel.ErrInvalidReqData)
+	}
+
+	err = utils.ValidateRequestBody(req)
+	if err != nil {
+		return err
 	}
 
 	err = handler.userUseCase.RequestUserPasswordReset(req)
@@ -103,6 +130,11 @@ func (handler *UserHandler) ResetPassword(ctx *fiber.Ctx) error {
 
 	req.UserID = ctx.Params("id")
 	req.PasswordResetToken = ctx.Params("token")
+
+	err = utils.ValidateRequestBody(req)
+	if err != nil {
+		return err
+	}
 
 	err = handler.userUseCase.ResetUserPassword(req)
 	return err

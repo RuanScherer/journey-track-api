@@ -1,8 +1,8 @@
 package model
 
 type CreateProjectRequest struct {
-	Name    string `json:"name"`
-	OwnerID string `json:"owner_id"`
+	Name    string `json:"name" valid:"required"`
+	OwnerID string `json:"owner_id" valid:"required"`
 }
 
 type CreateProjectResponse struct {
@@ -12,9 +12,9 @@ type CreateProjectResponse struct {
 }
 
 type EditProjectRequest struct {
-	ActorID   string `json:"-"`
-	ProjectID string `json:"project_id"`
-	Name      string `json:"name"`
+	ActorID   string `json:"-" valid:"required~actor id is required"`
+	ProjectID string `json:"project_id" valid:"required"`
+	Name      string `json:"name" valid:"required"`
 }
 
 type EditProjectResponse struct {
@@ -24,8 +24,8 @@ type EditProjectResponse struct {
 }
 
 type ShowProjectRequest struct {
-	ActorID   string `json:"-"`
-	ProjectID string `json:"project_id"`
+	ActorID   string `json:"-" valid:"required~actor id is required"`
+	ProjectID string `json:"project_id" valid:"required"`
 }
 
 type ShowProjectResponse struct {
@@ -50,14 +50,14 @@ type ProjectByMember struct {
 }
 
 type DeleteProjectRequest struct {
-	ActorID   string `json:"-"`
-	ProjectID string `json:"project_id"`
+	ActorID   string `json:"-" valid:"required~actor id is required"`
+	ProjectID string `json:"project_id" valid:"required"`
 }
 
 type InviteProjectMemberRequest struct {
-	ActorID   string `json:"-"`
-	ProjectID string `json:"project_id"`
-	UserID    string `json:"user_id"`
+	ActorID   string `json:"-" valid:"required~actor id is required"`
+	ProjectID string `json:"project_id" valid:"required"`
+	UserID    string `json:"user_id" valid:"required"`
 }
 
 type InviteProjectMemberResponse struct {
@@ -79,16 +79,16 @@ type InviteUser struct {
 }
 
 type AnswerProjectInviteRequest struct {
-	ProjectID   string `json:"project_id"`
-	InviteToken string `json:"invite_token"`
+	ProjectID   string `json:"project_id" valid:"required"`
+	InviteToken string `json:"invite_token" valid:"required"`
 }
 
 type RevokeProjectInviteRequest struct {
-	ActorID         string `json:"-"`
-	ProjectInviteID string `json:"project_invite_id"`
+	ActorID         string `json:"-" valid:"required~actor id is required"`
+	ProjectInviteID string `json:"project_invite_id" valid:"required"`
 }
 
 type RegisterEventRequest struct {
-	Name      string `json:"name"`
-	ProjectID string `json:"project_id"`
+	Name      string `json:"name" valid:"required"`
+	ProjectID string `json:"project_id" valid:"required"`
 }

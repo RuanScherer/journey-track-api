@@ -35,7 +35,7 @@ func (useCase *UserUseCase) RegisterUser(req *appmodel.RegisterUserRequest) (*ap
 			return nil, appmodel.NewAppError(
 				"user_email_already_used",
 				"There's already an user using this email",
-				appmodel.ErrorTypeDatabase,
+				appmodel.ErrorTypeValidation,
 			)
 		}
 		return nil, appmodel.NewAppError("unable_to_register_user", "unable to register user", appmodel.ErrorTypeDatabase)

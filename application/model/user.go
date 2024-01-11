@@ -1,9 +1,9 @@
 package model
 
 type RegisterUserRequest struct {
-	Email    string `json:"email"`
-	Name     string `json:"name"`
-	Password string `json:"password"`
+	Email    string `json:"email" valid:"email,required"`
+	Name     string `json:"name" valid:"required"`
+	Password string `json:"password" valid:"required,minstringlength(8)"`
 }
 
 type RegisterUserResponse struct {
@@ -14,13 +14,13 @@ type RegisterUserResponse struct {
 }
 
 type VerifyUserRequest struct {
-	UserID            string `json:"user_id"`
-	VerificationToken string `json:"verification_token"`
+	UserID            string `json:"user_id" valid:"required~user id is required"`
+	VerificationToken string `json:"verification_token" valid:"required~verification token is required"`
 }
 
 type SignInRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email" valid:"email,required"`
+	Password string `json:"password" valid:"required"`
 }
 
 type SignInResponse struct {
@@ -28,8 +28,8 @@ type SignInResponse struct {
 }
 
 type EditUserRequest struct {
-	UserID string `json:"user_id"`
-	Name   string `json:"name"`
+	UserID string `json:"user_id" valid:"required~user id is required"`
+	Name   string `json:"name" valid:"required"`
 }
 
 type EditUserResponse struct {
@@ -40,13 +40,13 @@ type EditUserResponse struct {
 }
 
 type RequestPasswordResetRequest struct {
-	Email string `json:"email"`
+	Email string `json:"email" valid:"email,required"`
 }
 
 type PasswordResetRequest struct {
-	UserID             string `json:"user_id"`
-	PasswordResetToken string `json:"password_reset_token"`
-	Password           string `json:"password"`
+	UserID             string `json:"user_id" valid:"required~user id is required"`
+	PasswordResetToken string `json:"password_reset_token" valid:"required~password reset token is required"`
+	Password           string `json:"password" valid:"required"`
 }
 
 type ShowUserResponse struct {
