@@ -1,6 +1,9 @@
 package usecase
 
 import (
+	"log"
+
+	"github.com/RuanScherer/journey-track-api/adapters/email"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/utils"
 	"github.com/RuanScherer/journey-track-api/domain/model"
@@ -9,11 +12,15 @@ import (
 )
 
 type UserUseCase struct {
-	repository model.UserRepository
+	repository   model.UserRepository
+	emailService email.EmailService
 }
 
-func NewUserUseCase(repository model.UserRepository) *UserUseCase {
-	return &UserUseCase{repository: repository}
+func NewUserUseCase(repository model.UserRepository, emailService email.EmailService) *UserUseCase {
+	return &UserUseCase{
+		repository,
+		emailService,
+	}
 }
 
 func (useCase *UserUseCase) RegisterUser(req *appmodel.RegisterUserRequest) (*appmodel.RegisterUserResponse, *appmodel.AppError) {
@@ -34,12 +41,35 @@ func (useCase *UserUseCase) RegisterUser(req *appmodel.RegisterUserRequest) (*ap
 		return nil, appmodel.NewAppError("unable_to_register_user", "unable to register user", appmodel.ErrorTypeDatabase)
 	}
 
+	go useCase.sendVerificationEmail(user)
 	return &appmodel.RegisterUserResponse{
 		ID:         user.ID,
 		Email:      *user.Email,
 		Name:       user.Name,
 		IsVerified: user.IsVerified,
 	}, nil
+}
+
+func (useCase *UserUseCase) sendVerificationEmail(user *model.User) {
+	body, err := utils.GetFilledEmailTemplate("verify_user.html", appmodel.UserVerificationEmailConfig{
+		UserName:         user.Name,
+		VerificationLink: "#", // TODO: Add password reset link when frontend is ready
+	})
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	email := email.EmailSendingConfig{
+		To:      *user.Email,
+		Subject: "Journey Track | Verifique sua conta",
+		Body:    body,
+	}
+	err = useCase.emailService.SendEmail(email)
+	if err != nil {
+		log.Print(err)
+		return
+	}
 }
 
 func (useCase *UserUseCase) VerifyUser(req *appmodel.VerifyUserRequest) *appmodel.AppError {
@@ -138,7 +168,30 @@ func (useCase *UserUseCase) RequestUserPasswordReset(req *appmodel.RequestPasswo
 		return appmodel.NewAppError("unable_to_complete", "unable to complete the request", appmodel.ErrorTypeDatabase)
 	}
 
+	go useCase.sendPasswordResetEmail(user)
 	return nil
+}
+
+func (useCase *UserUseCase) sendPasswordResetEmail(user *model.User) {
+	body, err := utils.GetFilledEmailTemplate("password_reset.html", appmodel.UserPasswordResetEmailConfig{
+		UserName:          user.Name,
+		PasswordResetLink: "#", // TODO: Add password reset link when frontend is ready
+	})
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	email := email.EmailSendingConfig{
+		To:      *user.Email,
+		Subject: "Journey Track | Redefinir senha",
+		Body:    body,
+	}
+	err = useCase.emailService.SendEmail(email)
+	if err != nil {
+		log.Print(err)
+		return
+	}
 }
 
 func (useCase *UserUseCase) ResetUserPassword(req *appmodel.PasswordResetRequest) error {

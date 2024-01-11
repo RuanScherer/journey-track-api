@@ -2,8 +2,11 @@ package usecase
 
 import (
 	"errors"
+	"log"
 
+	"github.com/RuanScherer/journey-track-api/adapters/email"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
+	"github.com/RuanScherer/journey-track-api/application/utils"
 	"github.com/RuanScherer/journey-track-api/domain/model"
 	"gorm.io/gorm"
 )
@@ -13,6 +16,7 @@ type ProjectUseCase struct {
 	userRepository          model.UserRepository
 	projectInviteRepository model.ProjectInviteRepository
 	eventRepository         model.EventRepository
+	emailService            email.EmailService
 }
 
 func NewProjectUseCase(
@@ -20,12 +24,14 @@ func NewProjectUseCase(
 	userRepository model.UserRepository,
 	projectInviteRepository model.ProjectInviteRepository,
 	eventRepository model.EventRepository,
+	emailService email.EmailService,
 ) *ProjectUseCase {
 	return &ProjectUseCase{
 		projectRepository:       projectRepository,
 		userRepository:          userRepository,
 		projectInviteRepository: projectInviteRepository,
 		eventRepository:         eventRepository,
+		emailService:            emailService,
 	}
 }
 
@@ -250,6 +256,7 @@ func (useCase *ProjectUseCase) InviteMember(req *appmodel.InviteProjectMemberReq
 		return nil, appmodel.NewAppError("unable_to_save_invite", err.Error(), appmodel.ErrorTypeDatabase)
 	}
 
+	go useCase.sendProjectInviteEmail(projectInvite.ID, actor.Name)
 	return &appmodel.InviteProjectMemberResponse{
 		ID: projectInvite.ID,
 		Project: &appmodel.InviteProject{
@@ -263,6 +270,35 @@ func (useCase *ProjectUseCase) InviteMember(req *appmodel.InviteProjectMemberReq
 		},
 		Status: projectInvite.Status,
 	}, nil
+}
+
+func (useCase *ProjectUseCase) sendProjectInviteEmail(inviteId string, issuerName string) {
+	invite, err := useCase.projectInviteRepository.FindById(inviteId)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	body, err := utils.GetFilledEmailTemplate("project_invite.html", appmodel.ProjectInviteEmailConfig{
+		UserName:         invite.User.Name,
+		IssuerName:       issuerName,
+		ProjectName:      invite.Project.Name,
+		AnswerInviteLink: "#", // TODO: Add answer invite link when frontend is ready
+	})
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	err = useCase.emailService.SendEmail(email.EmailSendingConfig{
+		To:      *invite.User.Email,
+		Subject: "Journey Track | Você foi convidado(a) para um projeto",
+		Body:    body,
+	})
+	if err != nil {
+		log.Print(err)
+		return
+	}
 }
 
 func (useCase *ProjectUseCase) AcceptInvite(req *appmodel.AnswerProjectInviteRequest) error {

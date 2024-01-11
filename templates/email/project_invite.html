@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8">
+    <title>Journey Track | Você foi convidado(a) para um projeto</title>
+  </head>
+
+  <body>
+    <table>
+      <tr>
+        <td>
+          <h1>Olá, {{.UserName}}!</h1>
+          <p>{{.IssuerName}} convidou você para se juntar ao projeto {{.ProjectName}}.</p>
+          <p>Para responder ao convite, clique no link abaixo.</p>
+          <a href="{{.AnswerInviteLink}}">Responder convite</a>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

@@ -1,8 +1,8 @@
 package handlers
 
 import (
+	"github.com/RuanScherer/journey-track-api/adapters/rest/model"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
-	"github.com/RuanScherer/journey-track-api/application/rest/model"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
 	"github.com/gofiber/fiber/v2"
 )

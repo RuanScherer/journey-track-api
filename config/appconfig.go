@@ -9,6 +9,11 @@ type AppConfig struct {
 	RestApiPort uint `mapstructure:"REST_API_PORT"`
 
 	JwtSecret string `mapstructure:"JWT_SECRET"`
+
+	EmailSmtpHost     string `mapstructure:"EMAIL_SMTP_HOST"`
+	EmailSmtpPort     uint   `mapstructure:"EMAIL_SMTP_PORT"`
+	EmailSmtpUsername string `mapstructure:"EMAIL_SMTP_USERNAME"`
+	EmailSmtpPassword string `mapstructure:"EMAIL_SMTP_PASSWORD"`
 }
 
 var config *AppConfig

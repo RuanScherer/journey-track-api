@@ -1,28 +1,31 @@
 package rest
 
 import (
-	"github.com/RuanScherer/journey-track-api/application/rest/handlers"
-	"github.com/RuanScherer/journey-track-api/application/rest/middlewares"
+	"github.com/RuanScherer/journey-track-api/adapters/db"
+	"github.com/RuanScherer/journey-track-api/adapters/db/repository"
+	"github.com/RuanScherer/journey-track-api/adapters/email"
+	"github.com/RuanScherer/journey-track-api/adapters/rest/handlers"
+	"github.com/RuanScherer/journey-track-api/adapters/rest/middlewares"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
-	"github.com/RuanScherer/journey-track-api/infrastructure/db"
-	"github.com/RuanScherer/journey-track-api/infrastructure/repository"
 	"github.com/gofiber/fiber/v2"
 )
 
 func RegisterRoutes(app *fiber.App) {
 	dbConn := db.GetConnection()
+	emailService := email.NewSmtpEmailService()
 
 	userRepository := repository.NewUserDBRepository(dbConn)
 	projectRepository := repository.NewProjectDBRepository(dbConn)
 	projectInviteRepository := repository.NewProjectInviteDBRepository(dbConn)
 	eventRepository := repository.NewEventDBRepository(dbConn)
 
-	userUseCase := usecase.NewUserUseCase(userRepository)
+	userUseCase := usecase.NewUserUseCase(userRepository, emailService)
 	projectUseCase := usecase.NewProjectUseCase(
 		projectRepository,
 		userRepository,
 		projectInviteRepository,
 		eventRepository,
+		emailService,
 	)
 
 	userHandler := handlers.NewUserHandler(*userUseCase)
