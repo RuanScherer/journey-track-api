@@ -7,9 +7,11 @@ services:
     volumes:
       - .:/app
     ports:
-      - "3000:3000"
+      - "8000:8000"
     depends_on:
       - db
+    networks:
+      - journey-track
   
   db:
     image: postgres:16.1-alpine
@@ -23,6 +25,9 @@ services:
       - .pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    networks:
+      - journey-track
+      - journey-track-api
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -33,3 +38,13 @@ services:
       PGADMIN_LISTEN_PORT: 8080
     ports:
       - "8080:8080"
+    networks:
+      - journey-track-api
+
+networks:
+  journey-track:
+    driver: bridge
+    external: false
+    name: journey-track
+  journey-track-api:
+    driver: bridge
