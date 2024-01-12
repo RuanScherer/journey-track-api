@@ -1,11 +1,13 @@
 package usecase
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/RuanScherer/journey-track-api/adapters/email"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/utils"
+	"github.com/RuanScherer/journey-track-api/config"
 	"github.com/RuanScherer/journey-track-api/domain/model"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -51,9 +53,16 @@ func (useCase *UserUseCase) RegisterUser(req *appmodel.RegisterUserRequest) (*ap
 }
 
 func (useCase *UserUseCase) sendVerificationEmail(user *model.User) {
+	frontendUrl := config.GetAppConfig().FrontendUrl
+	verificationLink := fmt.Sprintf(
+		"%s/verify-account?userId=%s&token=%s",
+		frontendUrl,
+		user.ID,
+		*user.VerificationToken,
+	)
 	body, err := utils.GetFilledEmailTemplate("verify_user.html", appmodel.UserVerificationEmailConfig{
 		UserName:         user.Name,
-		VerificationLink: "#", // TODO: Add password reset link when frontend is ready
+		VerificationLink: verificationLink,
 	})
 	if err != nil {
 		log.Print(err)
@@ -83,6 +92,9 @@ func (useCase *UserUseCase) VerifyUser(req *appmodel.VerifyUserRequest) *appmode
 
 	err = user.Verify(req.VerificationToken)
 	if err != nil {
+		if err.Error() == "user already verified" {
+			return appmodel.NewAppError("user_already_verified", "user already verified", appmodel.ErrorTypeValidation)
+		}
 		return appmodel.NewAppError("unable_to_verify_user", err.Error(), appmodel.ErrorTypeValidation)
 	}
 

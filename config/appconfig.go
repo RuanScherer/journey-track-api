@@ -3,6 +3,9 @@ package config
 import "github.com/spf13/viper"
 
 type AppConfig struct {
+	Environment string `mapstructure:"ENVIRONMENT"`
+	FrontendUrl string `mapstructure:"FRONTEND_URL"`
+
 	DbDsn        string `mapstructure:"DB_DSN"`
 	DbLogEnabled bool   `mapstructure:"DB_LOG_ENABLED"`
 
