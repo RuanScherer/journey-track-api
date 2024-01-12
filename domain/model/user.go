@@ -66,7 +66,11 @@ func (user *User) RegenerateVerificationToken() error {
 }
 
 func (user *User) Verify(verificationToken string) error {
-	if *user.VerificationToken != verificationToken {
+	if user.IsVerified {
+		return errors.New("user already verified")
+	}
+
+	if user.VerificationToken == nil || *user.VerificationToken != verificationToken {
 		return errors.New("invalid verification token")
 	}
 

@@ -75,9 +75,23 @@ func TestRegenerateVerificationToken(t *testing.T) {
 }
 
 func TestVerify(t *testing.T) {
+	t.Run("should return error when user is already verified", func(t *testing.T) {
+		user, _ := NewUser("example@domain.com", "Ruan", "12345678")
+		user.Verify(*user.VerificationToken)
+
+		err := user.Verify("oisnoanfiosanf")
+		require.NotNil(t, err)
+		require.Equal(t, "user already verified", err.Error())
+	})
+
 	t.Run("should return error when verification token is invalid", func(t *testing.T) {
 		user, _ := NewUser("example@domain.com", "Ruan", "12345678")
 		err := user.Verify("oisnoanfiosanf")
+		require.NotNil(t, err)
+		require.Equal(t, "invalid verification token", err.Error())
+
+		user.VerificationToken = nil
+		err = user.Verify("oisnoanfiosanf")
 		require.NotNil(t, err)
 		require.Equal(t, "invalid verification token", err.Error())
 	})
