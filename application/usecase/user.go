@@ -185,9 +185,16 @@ func (useCase *UserUseCase) RequestUserPasswordReset(req *appmodel.RequestPasswo
 }
 
 func (useCase *UserUseCase) sendPasswordResetEmail(user *model.User) {
+	frontendUrl := config.GetAppConfig().FrontendUrl
+	passwordResetLink := fmt.Sprintf(
+		"%s/reset-password?userId=%s&token=%s",
+		frontendUrl,
+		user.ID,
+		*user.PasswordResetToken,
+	)
 	body, err := utils.GetFilledEmailTemplate("password_reset.html", appmodel.UserPasswordResetEmailConfig{
 		UserName:          user.Name,
-		PasswordResetLink: "#", // TODO: Add password reset link when frontend is ready
+		PasswordResetLink: passwordResetLink,
 	})
 	if err != nil {
 		log.Print(err)
@@ -214,6 +221,9 @@ func (useCase *UserUseCase) ResetUserPassword(req *appmodel.PasswordResetRequest
 
 	err = u.ResetPassword(req.Password, req.PasswordResetToken)
 	if err != nil {
+		if err.Error() == "user has no request for password reset" {
+			return appmodel.NewAppError("no_request_for_password_reset", err.Error(), appmodel.ErrorTypeValidation)
+		}
 		return appmodel.NewAppError("unable_to_reset_password", err.Error(), appmodel.ErrorTypeValidation)
 	}
 
