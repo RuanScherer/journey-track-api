@@ -24,7 +24,14 @@ type SignInRequest struct {
 }
 
 type SignInResponse struct {
-	AccessToken string `json:"access_token"`
+	AccessToken string     `json:"access_token"`
+	User        SignInUser `json:"user"`
+}
+
+type SignInUser struct {
+	ID    string `json:"id"`
+	Email string `json:"email"`
+	Name  string `json:"name"`
 }
 
 type EditUserRequest struct {

@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"github.com/RuanScherer/journey-track-api/adapters/rest/model"
+	"github.com/RuanScherer/journey-track-api/adapters/rest/utils"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
-	"github.com/RuanScherer/journey-track-api/application/utils"
 	"github.com/gofiber/fiber/v2"
 )
 

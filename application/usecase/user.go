@@ -134,7 +134,14 @@ func (useCase *UserUseCase) SignIn(req *appmodel.SignInRequest) (*appmodel.SignI
 		return nil, appmodel.NewAppError("unexpected_error", err.Error(), appmodel.ErrorTypeServer)
 	}
 
-	return &appmodel.SignInResponse{AccessToken: jwt}, nil
+	return &appmodel.SignInResponse{
+		AccessToken: jwt,
+		User: appmodel.SignInUser{
+			ID:    user.ID,
+			Email: *user.Email,
+			Name:  user.Name,
+		},
+	}, nil
 }
 
 func (useCase *UserUseCase) EditUser(req *appmodel.EditUserRequest) (*appmodel.EditUserResponse, error) {
