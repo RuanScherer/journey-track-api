@@ -10,6 +10,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+const (
+	JwtExpirationTime = time.Hour * 24 * 7
+)
+
 func CreateJwtFromUser(user *model.User) (string, error) {
 	jwtClaims := appmodel.JwtClaims{
 		User: appmodel.AuthUser{
@@ -18,8 +22,8 @@ func CreateJwtFromUser(user *model.User) (string, error) {
 			Name:  user.Name,
 		},
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 7)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(JwtExpirationTime)),
 		},
 	}
 	jwt := jwt.NewWithClaims(jwt.SigningMethodHS256, jwtClaims)

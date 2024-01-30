@@ -35,6 +35,7 @@ func RegisterRoutes(app *fiber.App) {
 	v1 := api.Group("v1")
 
 	v1.Post("/signin", userHandler.SignIn)
+	v1.Post("/signout", userHandler.SignOut)
 
 	v1.Post("/users/request-password-reset", userHandler.RequestPasswordReset)
 	v1.Patch("/users/:id/reset-password/:token", userHandler.ResetPassword)

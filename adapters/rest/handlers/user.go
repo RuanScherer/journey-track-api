@@ -1,10 +1,14 @@
 package handlers
 
 import (
+	"time"
+
+	"github.com/RuanScherer/journey-track-api/adapters/rest/middlewares"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/model"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/utils"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
+	apputils "github.com/RuanScherer/journey-track-api/application/utils"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -81,8 +85,15 @@ func (handler *UserHandler) SignIn(ctx *fiber.Ctx) error {
 		Value:    signInResponse.AccessToken,
 		HTTPOnly: true,
 		Path:     "/",
+		Expires:  time.Now().Add(apputils.JwtExpirationTime),
 	})
 	return ctx.JSON(signInResponse)
+}
+
+func (handler *UserHandler) SignOut(ctx *fiber.Ctx) error {
+	middlewares.ExpireAccessTokenCookie(ctx)
+	ctx.Status(fiber.StatusNoContent)
+	return nil
 }
 
 func (handler *UserHandler) EditUser(ctx *fiber.Ctx) error {
