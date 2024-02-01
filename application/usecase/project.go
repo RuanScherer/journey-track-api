@@ -2,12 +2,14 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/RuanScherer/journey-track-api/adapters/email"
+	"github.com/RuanScherer/journey-track-api/adapters/email/utils"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
-	"github.com/RuanScherer/journey-track-api/application/utils"
 	"github.com/RuanScherer/journey-track-api/domain/model"
+	"github.com/matcornic/hermes/v2"
 	"gorm.io/gorm"
 )
 
@@ -279,12 +281,28 @@ func (useCase *ProjectUseCase) sendProjectInviteEmail(inviteId string, issuerNam
 		return
 	}
 
-	body, err := utils.GetFilledEmailTemplate("project_invite.html", appmodel.ProjectInviteEmailConfig{
-		UserName:         invite.User.Name,
-		IssuerName:       issuerName,
-		ProjectName:      invite.Project.Name,
-		AnswerInviteLink: "#", // TODO: Add answer invite link when frontend is ready
-	})
+	emailConfig := hermes.Email{
+		Body: hermes.Body{
+			Name:  invite.User.Name,
+			Title: "You have been invited to a project",
+			Intros: []string{
+				fmt.Sprintf("%s has invited you to join the project %s.", issuerName, invite.Project.Name),
+				"Join the project to start collaborating with the team.",
+			},
+			Actions: []hermes.Action{
+				{
+					Instructions: "Click the button below to answer the invite.",
+					Button: hermes.Button{
+						Color: "#f25d9c",
+						Text:  "Answer invite",
+						Link:  "#", // TODO: Add answer invite link when frontend is ready
+					},
+				},
+			},
+			Signature: "Regards",
+		},
+	}
+	body, err := utils.GenerateEmailHtml(emailConfig)
 	if err != nil {
 		log.Print(err)
 		return
@@ -292,7 +310,7 @@ func (useCase *ProjectUseCase) sendProjectInviteEmail(inviteId string, issuerNam
 
 	err = useCase.emailService.SendEmail(email.EmailSendingConfig{
 		To:      *invite.User.Email,
-		Subject: "Journey Track | Você foi convidado(a) para um projeto",
+		Subject: "Trackr | You have been invited to a project",
 		Body:    body,
 	})
 	if err != nil {

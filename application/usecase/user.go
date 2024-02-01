@@ -5,10 +5,12 @@ import (
 	"log"
 
 	"github.com/RuanScherer/journey-track-api/adapters/email"
+	emailutils "github.com/RuanScherer/journey-track-api/adapters/email/utils"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/utils"
 	"github.com/RuanScherer/journey-track-api/config"
 	"github.com/RuanScherer/journey-track-api/domain/model"
+	"github.com/matcornic/hermes/v2"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -60,10 +62,28 @@ func (useCase *UserUseCase) sendVerificationEmail(user *model.User) {
 		user.ID,
 		*user.VerificationToken,
 	)
-	body, err := utils.GetFilledEmailTemplate("verify_user.html", appmodel.UserVerificationEmailConfig{
-		UserName:         user.Name,
-		VerificationLink: verificationLink,
-	})
+	emailConfig := hermes.Email{
+		Body: hermes.Body{
+			Name:  user.Name,
+			Title: "Account verification",
+			Intros: []string{
+				"We are glad you're here!",
+				"Please verify your account to start using our services.",
+			},
+			Actions: []hermes.Action{
+				{
+					Instructions: "Click the button below to verify your account.",
+					Button: hermes.Button{
+						Color: "#f25d9c",
+						Text:  "Verify account",
+						Link:  verificationLink,
+					},
+				},
+			},
+			Signature: "Regards",
+		},
+	}
+	body, err := emailutils.GenerateEmailHtml(emailConfig)
 	if err != nil {
 		log.Print(err)
 		return
@@ -71,7 +91,7 @@ func (useCase *UserUseCase) sendVerificationEmail(user *model.User) {
 
 	email := email.EmailSendingConfig{
 		To:      *user.Email,
-		Subject: "Journey Track | Verifique sua conta",
+		Subject: "Trackr | Verify your account",
 		Body:    body,
 	}
 	err = useCase.emailService.SendEmail(email)
@@ -199,10 +219,28 @@ func (useCase *UserUseCase) sendPasswordResetEmail(user *model.User) {
 		user.ID,
 		*user.PasswordResetToken,
 	)
-	body, err := utils.GetFilledEmailTemplate("password_reset.html", appmodel.UserPasswordResetEmailConfig{
-		UserName:          user.Name,
-		PasswordResetLink: passwordResetLink,
-	})
+	emailConfig := hermes.Email{
+		Body: hermes.Body{
+			Name:  user.Name,
+			Title: "Password reset",
+			Intros: []string{
+				"It seems you're having trouble with your password.",
+				"As requested, we're sending you a link to reset it.",
+			},
+			Actions: []hermes.Action{
+				{
+					Instructions: "Click the button below to reset your password.",
+					Button: hermes.Button{
+						Color: "#f25d9c",
+						Text:  "Reset password",
+						Link:  passwordResetLink,
+					},
+				},
+			},
+			Signature: "Regards",
+		},
+	}
+	body, err := emailutils.GenerateEmailHtml(emailConfig)
 	if err != nil {
 		log.Print(err)
 		return
@@ -210,7 +248,7 @@ func (useCase *UserUseCase) sendPasswordResetEmail(user *model.User) {
 
 	email := email.EmailSendingConfig{
 		To:      *user.Email,
-		Subject: "Journey Track | Redefinir senha",
+		Subject: "Trackr | Reset your password",
 		Body:    body,
 	}
 	err = useCase.emailService.SendEmail(email)
