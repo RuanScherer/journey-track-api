@@ -51,6 +51,7 @@ func RegisterRoutes(app *fiber.App) {
 	v1.Post("/projects/create", projectHandler.CreateProject)
 	v1.Put("/projects/:id/edit", projectHandler.EditProject)
 	v1.Get("/projects/:id", projectHandler.ShowProject)
+	v1.Get("/projects/:id/stats", projectHandler.GetProjectStats)
 	v1.Get("/projects", projectHandler.ListProjectsByMember)
 	v1.Delete("/projects/:id", projectHandler.DeleteProject)
 

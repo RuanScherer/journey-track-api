@@ -8,14 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type ProjectRepository interface {
-	Register(project *Project) error
-	Save(project *Project) error
-	FindByMemberId(memberId string) ([]*Project, error)
-	FindById(id string) (*Project, error)
-	DeleteById(id string) error
-}
-
 type Project struct {
 	gorm.Model
 	ID      string           `json:"id" gorm:"primaryKey" valid:"uuid~[project] Invalid ID"`

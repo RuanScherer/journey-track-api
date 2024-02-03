@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/RuanScherer/journey-track-api/domain/model"
+	domainrepository "github.com/RuanScherer/journey-track-api/domain/repository"
 	"gorm.io/gorm"
 )
 
@@ -48,7 +49,40 @@ func (repository *ProjectDBRepository) FindById(id string) (*model.Project, erro
 	return project, nil
 }
 
+func (repository *ProjectDBRepository) FindMembersCountAndEventsCountById(
+	id string,
+) (*domainrepository.ProjectMembersCountAndEventsCount, error) {
+	result := &domainrepository.ProjectMembersCountAndEventsCount{}
+	err := repository.DB.
+		Table("user_projects").
+		Joins("left join projects on user_projects.project_id = projects.id").
+		Joins("left join events on projects.id = events.project_id").
+		Where("user_projects.project_id = ?", id).
+		Select("count(user_projects.user_id) as members_count, count(events.id) as events_count").
+		Scan(result).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 func (repository *ProjectDBRepository) DeleteById(id string) error {
 	err := repository.DB.Where("id = ?", id).Delete(&model.Project{}).Error
 	return err
+}
+
+func (repository *ProjectDBRepository) HasMember(projectID, memberID string) (bool, error) {
+	var count int64
+	err := repository.DB.
+		Table("user_projects").
+		Where("project_id = ?", projectID).
+		Where("user_id = ?", memberID).
+		Limit(1).
+		Count(&count).Error
+
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }

@@ -9,14 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserRepository interface {
-	Register(user *User) error
-	Save(user *User) error
-	FindById(id string) (*User, error)
-	FindByEmail(email string) (*User, error)
-	SearchByEmail(email string) ([]*User, error)
-}
-
 type User struct {
 	gorm.Model
 	ID                 string           `json:"id" gorm:"primaryKey" valid:"uuid~[user] Invalid ID"`

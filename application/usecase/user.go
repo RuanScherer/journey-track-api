@@ -10,17 +10,18 @@ import (
 	"github.com/RuanScherer/journey-track-api/application/utils"
 	"github.com/RuanScherer/journey-track-api/config"
 	"github.com/RuanScherer/journey-track-api/domain/model"
+	"github.com/RuanScherer/journey-track-api/domain/repository"
 	"github.com/matcornic/hermes/v2"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type UserUseCase struct {
-	repository   model.UserRepository
+	repository   repository.UserRepository
 	emailService email.EmailService
 }
 
-func NewUserUseCase(repository model.UserRepository, emailService email.EmailService) *UserUseCase {
+func NewUserUseCase(repository repository.UserRepository, emailService email.EmailService) *UserUseCase {
 	return &UserUseCase{
 		repository,
 		emailService,

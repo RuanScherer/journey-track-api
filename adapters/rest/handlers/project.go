@@ -78,6 +78,25 @@ func (handler *ProjectHandler) ShowProject(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).JSON(res)
 }
 
+func (handler *ProjectHandler) GetProjectStats(ctx *fiber.Ctx) error {
+	req := &appmodel.GetProjectStatsRequest{
+		ActorID:   ctx.Locals("sessionUser").(appmodel.AuthUser).ID,
+		ProjectID: ctx.Params("id"),
+	}
+
+	err := utils.ValidateRequestBody(req)
+	if err != nil {
+		return err
+	}
+
+	res, err := handler.projectUseCase.GetProjectStats(req)
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(res)
+}
+
 func (handler *ProjectHandler) ListProjectsByMember(ctx *fiber.Ctx) error {
 	userId := ctx.Locals("sessionUser").(appmodel.AuthUser).ID
 

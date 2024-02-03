@@ -14,15 +14,6 @@ const (
 	ProjectInviteStatusDeclined = "declined"
 )
 
-type ProjectInviteRepository interface {
-	Create(projectInvite *ProjectInvite) error
-	Save(projectInvite *ProjectInvite) error
-	DeleteById(projectInviteId string) error
-	FindById(projectInviteId string) (*ProjectInvite, error)
-	FindByProjectAndToken(projectId string, token string) (*ProjectInvite, error)
-	FindPendingByUserAndProject(userId string, projectId string) (*ProjectInvite, error)
-}
-
 type ProjectInvite struct {
 	gorm.Model
 	ID        string   `json:"id" gorm:"primaryKey" valid:"uuid~[project invite] Invalid ID"`

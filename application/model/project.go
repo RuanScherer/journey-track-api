@@ -35,6 +35,16 @@ type ShowProjectResponse struct {
 	Members []*ProjectMember `json:"members"`
 }
 
+type GetProjectStatsRequest struct {
+	ActorID   string `json:"-" valid:"required~actor id is required"`
+	ProjectID string `json:"project_id" valid:"required"`
+}
+
+type GetProjectStatsResponse struct {
+	MembersCount int64 `json:"members_count"`
+	EventsCount  int64 `json:"events_count"`
+}
+
 type ProjectMember struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`

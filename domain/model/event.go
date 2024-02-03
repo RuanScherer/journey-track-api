@@ -8,10 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type EventRepository interface {
-	Register(*Event) error
-}
-
 type Event struct {
 	gorm.Model
 	ID        string     `json:"id" gorm:"primaryKey" valid:"uuid~[event] Invalid ID"`
