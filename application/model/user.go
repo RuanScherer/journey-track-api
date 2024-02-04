@@ -63,11 +63,16 @@ type ShowUserResponse struct {
 	IsVerified bool   `json:"is_verified"`
 }
 
-type SearchUserResponse = []*UserSearchResult
+type SearchUsersRequest struct {
+	Email    string `json:"email"`
+	Page     int    `json:"page"`
+	PageSize int    `json:"page_size"`
+}
+
+type SearchUsersResponse = []*UserSearchResult
 
 type UserSearchResult struct {
-	ID         string `json:"id"`
-	Email      string `json:"email"`
-	Name       string `json:"name"`
-	IsVerified bool   `json:"is_verified"`
+	ID    string `json:"id"`
+	Email string `json:"email"`
+	Name  string `json:"name"`
 }

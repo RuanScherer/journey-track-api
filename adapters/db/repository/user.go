@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"github.com/RuanScherer/journey-track-api/adapters/db/utils"
 	"github.com/RuanScherer/journey-track-api/domain/model"
+	domainrepository "github.com/RuanScherer/journey-track-api/domain/repository"
 	"gorm.io/gorm"
 )
 
@@ -44,9 +46,17 @@ func (repository *UserDBRepository) FindByEmail(email string) (*model.User, erro
 	return &user, nil
 }
 
-func (repository *UserDBRepository) SearchByEmail(email string) ([]*model.User, error) {
+func (repository *UserDBRepository) Search(options domainrepository.UserSearchOptions) ([]*model.User, error) {
 	users := []*model.User{}
-	err := repository.DB.Where("email like ?", "%"+email+"%").Find(&users).Error
+	err := repository.DB.
+		Where("email like ?", "%"+options.Email+"%").
+		Scopes(
+			utils.Paginate(utils.PaginationOptions{
+				Page:     options.Page,
+				PageSize: options.PageSize,
+			}),
+		).
+		Find(&users).Error
 	if err != nil {
 		return nil, err
 	}

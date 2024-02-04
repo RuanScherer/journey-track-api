@@ -299,19 +299,22 @@ func (useCase *UserUseCase) ShowUser(userId string) (*appmodel.ShowUserResponse,
 	}, nil
 }
 
-func (useCase *UserUseCase) SearchUsersByEmail(email string) (*appmodel.SearchUserResponse, error) {
-	users, err := useCase.repository.SearchByEmail(email)
+func (useCase *UserUseCase) SearchUsers(req *appmodel.SearchUsersRequest) (*appmodel.SearchUsersResponse, error) {
+	users, err := useCase.repository.Search(repository.UserSearchOptions{
+		Email:    req.Email,
+		Page:     req.Page,
+		PageSize: req.PageSize,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	var usersResponse appmodel.SearchUserResponse
+	var usersResponse appmodel.SearchUsersResponse
 	for _, user := range users {
 		usersResponse = append(usersResponse, &appmodel.UserSearchResult{
-			ID:         user.ID,
-			Email:      *user.Email,
-			Name:       user.Name,
-			IsVerified: user.IsVerified,
+			ID:    user.ID,
+			Email: *user.Email,
+			Name:  user.Name,
 		})
 	}
 

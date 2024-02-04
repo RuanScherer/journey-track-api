@@ -7,5 +7,11 @@ type UserRepository interface {
 	Save(user *model.User) error
 	FindById(id string) (*model.User, error)
 	FindByEmail(email string) (*model.User, error)
-	SearchByEmail(email string) ([]*model.User, error)
+	Search(options UserSearchOptions) ([]*model.User, error)
+}
+
+type UserSearchOptions struct {
+	Email    string
+	Page     int
+	PageSize int
 }

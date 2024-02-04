@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/RuanScherer/journey-track-api/adapters/rest/middlewares"
@@ -160,4 +161,38 @@ func (handler *UserHandler) ShowUser(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.JSON(response)
+}
+
+func (handler *UserHandler) SearchUsers(ctx *fiber.Ctx) error {
+	page, err := strconv.Atoi(ctx.Query("page", "1"))
+	if err != nil {
+		return model.NewRestApiError(fiber.StatusBadRequest, appmodel.ErrInvalidReqData)
+	}
+
+	pageSize, err := strconv.Atoi(ctx.Query("page_size", "10"))
+	if err != nil {
+		return model.NewRestApiError(fiber.StatusBadRequest, appmodel.ErrInvalidReqData)
+	}
+
+	req := &appmodel.SearchUsersRequest{
+		Email:    ctx.Query("email"),
+		Page:     page,
+		PageSize: pageSize,
+	}
+
+	err = utils.ValidateRequestBody(req)
+	if err != nil {
+		return err
+	}
+
+	res, err := handler.userUseCase.SearchUsers(req)
+	if err != nil {
+		return err
+	}
+
+	// fiber was sending `null` instead of empty array, so I did this
+	if len(*res) == 0 {
+		return ctx.JSON([]any{})
+	}
+	return ctx.JSON(*res)
 }

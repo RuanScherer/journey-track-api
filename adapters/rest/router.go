@@ -47,6 +47,7 @@ func RegisterRoutes(app *fiber.App) {
 
 	v1.Put("/users/edit-profile", userHandler.EditUser)
 	v1.Get("/users/profile", userHandler.ShowUser)
+	v1.Get("/users/search", userHandler.SearchUsers)
 
 	v1.Post("/projects/create", projectHandler.CreateProject)
 	v1.Put("/projects/:id/edit", projectHandler.EditProject)
