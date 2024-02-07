@@ -17,6 +17,13 @@ func (repository *ProjectInviteDBRepository) Create(projectInvite *model.Project
 	return repository.DB.Create(projectInvite).Error
 }
 
+func (repository *ProjectInviteDBRepository) BatchCreate(projectInvites []*model.ProjectInvite) error {
+	if len(projectInvites) == 0 {
+		return nil
+	}
+	return repository.DB.Create(projectInvites).Error
+}
+
 func (repository *ProjectInviteDBRepository) Save(projectInvite *model.ProjectInvite) error {
 	return repository.DB.Save(projectInvite).Error
 }
@@ -63,6 +70,8 @@ func (repository *ProjectInviteDBRepository) FindPendingByUserAndProject(
 ) (*model.ProjectInvite, error) {
 	projectInvite := &model.ProjectInvite{}
 	err := repository.DB.
+		Preload("User").
+		Preload("Project").
 		Where("user_id = ? and project_id = ? and status = ?", userId, projectId, model.ProjectInviteStatusPending).
 		First(projectInvite).Error
 

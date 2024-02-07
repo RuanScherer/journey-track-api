@@ -64,13 +64,15 @@ type DeleteProjectRequest struct {
 	ProjectID string `json:"project_id" valid:"required"`
 }
 
-type InviteProjectMemberRequest struct {
-	ActorID   string `json:"-" valid:"required~actor id is required"`
-	ProjectID string `json:"project_id" valid:"required"`
-	UserID    string `json:"user_id" valid:"required"`
+type InviteProjectMembersRequest struct {
+	ActorID   string   `json:"-" valid:"required~actor id is required"`
+	ProjectID string   `json:"project_id" valid:"required"`
+	UserIDs   []string `json:"users" valid:"required"`
 }
 
-type InviteProjectMemberResponse struct {
+type InviteProjectMembersResponse = []*ProjectInvite
+
+type ProjectInvite struct {
 	ID      string         `json:"id"`
 	Project *InviteProject `json:"project"`
 	User    *InviteUser    `json:"user"`

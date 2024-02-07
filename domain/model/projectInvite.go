@@ -42,11 +42,13 @@ func NewProjectInvite(project *Project, user *User) (*ProjectInvite, error) {
 
 	token := uuid.New().String()
 	projectInvite := &ProjectInvite{
-		ID:      uuid.New().String(),
-		Project: project,
-		UserID:  user.ID,
-		Status:  ProjectInviteStatusPending,
-		Token:   &token,
+		ID:        uuid.New().String(),
+		ProjectID: project.ID,
+		Project:   project,
+		UserID:    user.ID,
+		User:      user,
+		Status:    ProjectInviteStatusPending,
+		Token:     &token,
 	}
 
 	_, err = govalidator.ValidateStruct(projectInvite)

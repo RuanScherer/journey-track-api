@@ -32,7 +32,7 @@ func RegisterRoutes(app *fiber.App) {
 	v1.Get("/projects", handlers.NewListProjectsByMemberHandler().Handle)
 	v1.Delete("/projects/:id", handlers.NewDeleteProjectHandler().Handle)
 
-	v1.Post("/projects/:projectId/invite/:userId", handlers.NewInviteProjectMemberHandler().Handle)
+	v1.Post("/projects/:projectId/invite", handlers.NewInviteProjectMembersHandler().Handle)
 	v1.Patch("/projects/:projectId/invites/accept", handlers.NewAcceptProjectInviteHandler().Handle)
 	v1.Patch("/projects/:projectId/invites/decline", handlers.NewDeclineProjectInviteHandler().Handle)
 	v1.Delete("/projects/invites/:id/revoke", handlers.NewRevokeProjectInviteHandler().Handle)

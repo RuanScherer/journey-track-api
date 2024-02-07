@@ -10,33 +10,36 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type InviteProjectMemberHandler struct {
-	useCase usecase.InviteProjectMemberUseCase
+type InviteProjectMembersHandler struct {
+	useCase usecase.InviteProjectMembersUseCase
 }
 
-func NewInviteProjectMemberHandler() *InviteProjectMemberHandler {
+func NewInviteProjectMembersHandler() *InviteProjectMembersHandler {
 	db := db.GetConnection()
 	projectRepository := repository.NewProjectDBRepository(db)
 	userRepository := repository.NewUserDBRepository(db)
 	projectInviteRepository := repository.NewProjectInviteDBRepository(db)
 	emailService := email.NewSmtpEmailService()
-	useCase := *usecase.NewInviteProjectMemberUseCase(
+	useCase := *usecase.NewInviteProjectMembersUseCase(
 		projectRepository,
 		userRepository,
 		projectInviteRepository,
 		emailService,
 	)
-	return &InviteProjectMemberHandler{useCase: useCase}
+	return &InviteProjectMembersHandler{useCase: useCase}
 }
 
-func (handler *InviteProjectMemberHandler) Handle(ctx *fiber.Ctx) error {
-	req := &appmodel.InviteProjectMemberRequest{
-		ActorID:   ctx.Locals("sessionUser").(appmodel.AuthUser).ID,
-		ProjectID: ctx.Params("projectId"),
-		UserID:    ctx.Params("userId"),
+func (handler *InviteProjectMembersHandler) Handle(ctx *fiber.Ctx) error {
+	req := &appmodel.InviteProjectMembersRequest{}
+	err := ctx.BodyParser(req)
+	if err != nil {
+		return err
 	}
 
-	err := utils.ValidateRequestBody(req)
+	req.ActorID = ctx.Locals("sessionUser").(appmodel.AuthUser).ID
+	req.ProjectID = ctx.Params("projectId")
+
+	err = utils.ValidateRequestBody(req)
 	if err != nil {
 		return err
 	}

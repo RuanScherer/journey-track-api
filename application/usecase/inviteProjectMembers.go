@@ -14,20 +14,20 @@ import (
 	"gorm.io/gorm"
 )
 
-type InviteProjectMemberUseCase struct {
+type InviteProjectMembersUseCase struct {
 	projectRepository       repository.ProjectRepository
 	userRepository          repository.UserRepository
 	projectInviteRepository repository.ProjectInviteRepository
 	emailService            email.EmailService
 }
 
-func NewInviteProjectMemberUseCase(
+func NewInviteProjectMembersUseCase(
 	projectRepository repository.ProjectRepository,
 	userRepository repository.UserRepository,
 	projectInviteRepository repository.ProjectInviteRepository,
 	emailService email.EmailService,
-) *InviteProjectMemberUseCase {
-	return &InviteProjectMemberUseCase{
+) *InviteProjectMembersUseCase {
+	return &InviteProjectMembersUseCase{
 		projectRepository,
 		userRepository,
 		projectInviteRepository,
@@ -35,9 +35,9 @@ func NewInviteProjectMemberUseCase(
 	}
 }
 
-func (useCase *InviteProjectMemberUseCase) Execute(
-	req *appmodel.InviteProjectMemberRequest,
-) (*appmodel.InviteProjectMemberResponse, error) {
+func (useCase *InviteProjectMembersUseCase) Execute(
+	req *appmodel.InviteProjectMembersRequest,
+) (*appmodel.InviteProjectMembersResponse, error) {
 	project, err := useCase.projectRepository.FindById(req.ProjectID)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -64,7 +64,63 @@ func (useCase *InviteProjectMemberUseCase) Execute(
 		)
 	}
 
-	user, err := useCase.userRepository.FindById(req.UserID)
+	invites, e := useCase.generateInvites(req.UserIDs, project)
+	if e != nil {
+		return nil, e
+	}
+
+	// remove invites that already exist from the batch
+	invitesToCreate := make([]*model.ProjectInvite, 0)
+	for _, invite := range invites {
+		if invite.CreatedAt.IsZero() {
+			invitesToCreate = append(invitesToCreate, invite)
+		}
+	}
+	err = useCase.projectInviteRepository.BatchCreate(invitesToCreate)
+	if err != nil {
+		return nil, appmodel.NewAppError("unable_to_save_invites", err.Error(), appmodel.ErrorTypeDatabase)
+	}
+
+	useCase.sendProjectInviteEmails(invites, actor)
+
+	var response appmodel.InviteProjectMembersResponse
+	for _, invite := range invites {
+		response = append(response, &appmodel.ProjectInvite{
+			ID: invite.ID,
+			Project: &appmodel.InviteProject{
+				ID:   invite.Project.ID,
+				Name: invite.Project.Name,
+			},
+			User: &appmodel.InviteUser{
+				ID:    invite.User.ID,
+				Email: *invite.User.Email,
+				Name:  invite.User.Name,
+			},
+			Status: invite.Status,
+		})
+	}
+	return &response, nil
+}
+
+func (useCase *InviteProjectMembersUseCase) generateInvites(
+	userIDs []string,
+	project *model.Project,
+) ([]*model.ProjectInvite, *appmodel.AppError) {
+	invites := make([]*model.ProjectInvite, 0)
+	for _, userID := range userIDs {
+		invite, err := useCase.generateInvite(userID, project)
+		if err != nil {
+			return make([]*model.ProjectInvite, 0), err
+		}
+		invites = append(invites, invite)
+	}
+	return invites, nil
+}
+
+func (useCase *InviteProjectMembersUseCase) generateInvite(
+	userID string, project *model.Project,
+) (*model.ProjectInvite, *appmodel.AppError) {
+	user, err := useCase.userRepository.FindById(userID)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, appmodel.NewAppError("user_not_found", "user not found", appmodel.ErrorTypeValidation)
@@ -82,40 +138,23 @@ func (useCase *InviteProjectMemberUseCase) Execute(
 	}
 
 	if existentInvite != nil {
-		return nil, appmodel.NewAppError(
-			"user_already_invited",
-			"user already invited to the project",
-			appmodel.ErrorTypeValidation,
-		)
+		return existentInvite, nil
 	}
 
 	projectInvite, err := model.NewProjectInvite(project, user)
 	if err != nil {
 		return nil, appmodel.NewAppError("unable_to_invite_user", err.Error(), appmodel.ErrorTypeValidation)
 	}
-
-	err = useCase.projectInviteRepository.Create(projectInvite)
-	if err != nil {
-		return nil, appmodel.NewAppError("unable_to_save_invite", err.Error(), appmodel.ErrorTypeDatabase)
-	}
-
-	go useCase.sendProjectInviteEmail(projectInvite.ID, actor.Name)
-	return &appmodel.InviteProjectMemberResponse{
-		ID: projectInvite.ID,
-		Project: &appmodel.InviteProject{
-			ID:   projectInvite.Project.ID,
-			Name: projectInvite.Project.Name,
-		},
-		User: &appmodel.InviteUser{
-			ID:    user.ID,
-			Email: *user.Email,
-			Name:  user.Name,
-		},
-		Status: projectInvite.Status,
-	}, nil
+	return projectInvite, nil
 }
 
-func (useCase *InviteProjectMemberUseCase) sendProjectInviteEmail(inviteId string, issuerName string) {
+func (useCase *InviteProjectMembersUseCase) sendProjectInviteEmails(invites []*model.ProjectInvite, actor *model.User) {
+	for _, invite := range invites {
+		go useCase.sendProjectInviteEmail(invite.ID, actor.Name)
+	}
+}
+
+func (useCase *InviteProjectMembersUseCase) sendProjectInviteEmail(inviteId string, issuerName string) {
 	invite, err := useCase.projectInviteRepository.FindById(inviteId)
 	if err != nil {
 		log.Print(err)
