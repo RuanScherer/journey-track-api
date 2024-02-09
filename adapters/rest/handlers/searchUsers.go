@@ -34,6 +34,7 @@ func (handler *SearchUsersHandler) Handle(ctx *fiber.Ctx) error {
 	}
 
 	req := &appmodel.SearchUsersRequest{
+		ActorID:  ctx.Locals("sessionUser").(appmodel.AuthUser).ID,
 		Email:    ctx.Query("email"),
 		Page:     page,
 		PageSize: pageSize,

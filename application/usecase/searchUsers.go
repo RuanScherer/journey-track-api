@@ -25,6 +25,9 @@ func (useCase *SearchUsersUseCase) Execute(req *appmodel.SearchUsersRequest) (*a
 
 	var usersResponse appmodel.SearchUsersResponse
 	for _, user := range users {
+		if user.ID == req.ActorID {
+			continue
+		}
 		usersResponse = append(usersResponse, &appmodel.UserSearchResult{
 			ID:    user.ID,
 			Email: *user.Email,
