@@ -7,12 +7,12 @@ type ProjectRepository interface {
 	Save(project *model.Project) error
 	FindByMemberId(memberId string) ([]*model.Project, error)
 	FindById(id string) (*model.Project, error)
-	FindMembersCountAndEventsCountById(id string) (*ProjectMembersCountAndEventsCount, error)
+	FindMembersCountAndEventsCountById(id string) (*ProjectInvitesCountAndEventsCount, error)
 	DeleteById(id string) error
 	HasMember(projectID, memberID string) (bool, error)
 }
 
-type ProjectMembersCountAndEventsCount struct {
-	MembersCount int64
+type ProjectInvitesCountAndEventsCount struct {
+	InvitesCount int64
 	EventsCount  int64
 }

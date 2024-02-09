@@ -41,7 +41,7 @@ type GetProjectStatsRequest struct {
 }
 
 type GetProjectStatsResponse struct {
-	MembersCount int64 `json:"members_count"`
+	InvitesCount int64 `json:"invites_count"`
 	EventsCount  int64 `json:"events_count"`
 }
 

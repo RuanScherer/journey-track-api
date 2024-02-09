@@ -42,7 +42,7 @@ func (useCase *GetProjectStatsUseCase) Execute(
 	}
 
 	return &appmodel.GetProjectStatsResponse{
-		MembersCount: stats.MembersCount,
+		InvitesCount: stats.InvitesCount,
 		EventsCount:  stats.EventsCount,
 	}, nil
 }

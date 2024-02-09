@@ -51,14 +51,14 @@ func (repository *ProjectDBRepository) FindById(id string) (*model.Project, erro
 
 func (repository *ProjectDBRepository) FindMembersCountAndEventsCountById(
 	id string,
-) (*domainrepository.ProjectMembersCountAndEventsCount, error) {
-	result := &domainrepository.ProjectMembersCountAndEventsCount{}
+) (*domainrepository.ProjectInvitesCountAndEventsCount, error) {
+	result := &domainrepository.ProjectInvitesCountAndEventsCount{}
 	err := repository.DB.
-		Table("user_projects").
-		Joins("left join projects on user_projects.project_id = projects.id").
+		Table("project_invites").
+		Joins("left join projects on project_invites.project_id = projects.id").
 		Joins("left join events on projects.id = events.project_id").
-		Where("user_projects.project_id = ?", id).
-		Select("count(user_projects.user_id) as members_count, count(events.id) as events_count").
+		Where("project_invites.project_id = ?", id).
+		Select("count(project_invites.id) as invites_count, count(events.id) as events_count").
 		Scan(result).Error
 
 	if err != nil {
