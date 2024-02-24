@@ -62,6 +62,7 @@ func (useCase *ShowProjectUseCase) Execute(req *appmodel.ShowProjectRequest) (*a
 		ID:      project.ID,
 		Name:    project.Name,
 		OwnerID: project.OwnerID,
+		IsOwner: project.OwnerID == req.ActorID,
 		Members: members,
 	}, nil
 }
