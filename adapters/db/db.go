@@ -29,7 +29,10 @@ func connect() *gorm.DB {
 	if appConfig.DbLogEnabled {
 		gormConfig.Logger = logger.New(
 			log.New(os.Stdout, "\r\n", log.LstdFlags),
-			logger.Config{},
+			logger.Config{
+				Colorful: true,
+				LogLevel: logger.Info,
+			},
 		)
 	}
 
