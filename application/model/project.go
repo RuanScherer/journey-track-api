@@ -105,3 +105,11 @@ type RegisterEventRequest struct {
 	Name      string `json:"name" valid:"required"`
 	ProjectID string `json:"project_id" valid:"required"`
 }
+
+type ListProjectInvitesRequest struct {
+	ActorID   string `json:"-" valid:"required~actor id is required"`
+	ProjectID string `json:"project_id" valid:"required"`
+	Status    string `json:"status"`
+}
+
+type ListProjectInvitesResponse = []*ProjectInvite

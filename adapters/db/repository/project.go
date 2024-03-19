@@ -57,7 +57,7 @@ func (repository *ProjectDBRepository) FindMembersCountAndEventsCountById(
 		Table("projects").
 		Joins("left join project_invites on projects.id = project_invites.project_id").
 		Joins("left join events on projects.id = events.project_id").
-		Where("projects.id = ?", id).
+		Where("projects.id = ? and project_invites.deleted_at is null", id).
 		Select("count(project_invites.id) as invites_count, count(events.id) as events_count").
 		Scan(result).Error
 
