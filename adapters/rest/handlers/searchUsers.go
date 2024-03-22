@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/RuanScherer/journey-track-api/adapters/db"
 	"github.com/RuanScherer/journey-track-api/adapters/db/repository"
@@ -35,6 +36,7 @@ func (handler *SearchUsersHandler) Handle(ctx *fiber.Ctx) error {
 
 	req := &appmodel.SearchUsersRequest{
 		ActorID:  ctx.Locals("sessionUser").(appmodel.AuthUser).ID,
+		ExcludedProjectIDs: strings.Split(ctx.Query("excluded_project_ids"), ","),
 		Email:    ctx.Query("email"),
 		Page:     page,
 		PageSize: pageSize,

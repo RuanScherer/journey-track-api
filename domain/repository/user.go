@@ -12,6 +12,7 @@ type UserRepository interface {
 
 type UserSearchOptions struct {
 	Email    string
+	ExcludedProjectIDs []string
 	Page     int
 	PageSize int
 }

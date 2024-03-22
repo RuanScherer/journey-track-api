@@ -15,6 +15,7 @@ func NewSearchUsersUseCase(userRepository repository.UserRepository) *SearchUser
 
 func (useCase *SearchUsersUseCase) Execute(req *appmodel.SearchUsersRequest) (*appmodel.SearchUsersResponse, error) {
 	users, err := useCase.userRepository.Search(repository.UserSearchOptions{
+		ExcludedProjectIDs: req.ExcludedProjectIDs,
 		Email:    req.Email,
 		Page:     req.Page,
 		PageSize: req.PageSize,

@@ -49,7 +49,9 @@ func (repository *UserDBRepository) FindByEmail(email string) (*model.User, erro
 func (repository *UserDBRepository) Search(options domainrepository.UserSearchOptions) ([]*model.User, error) {
 	users := []*model.User{}
 	err := repository.DB.
-		Where("email like ?", "%"+options.Email+"%").
+		Joins("left join user_projects on users.id = user_projects.user_id and user_projects.project_id not in (?)", options.ExcludedProjectIDs).
+		Where("users.email like ?", "%"+options.Email+"%").
+		Group("users.id").
 		Scopes(
 			utils.Paginate(utils.PaginationOptions{
 				Page:     options.Page,
@@ -57,6 +59,7 @@ func (repository *UserDBRepository) Search(options domainrepository.UserSearchOp
 			}),
 		).
 		Find(&users).Error
+
 	if err != nil {
 		return nil, err
 	}

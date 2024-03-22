@@ -65,6 +65,7 @@ type ShowUserResponse struct {
 
 type SearchUsersRequest struct {
 	ActorID  string `json:"actor_id"`
+	ExcludedProjectIDs []string `json:"excluded_project_ids"`
 	Email    string `json:"email"`
 	Page     int    `json:"page"`
 	PageSize int    `json:"page_size"`
