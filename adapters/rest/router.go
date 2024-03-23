@@ -18,6 +18,8 @@ func RegisterRoutes(app *fiber.App) {
 	v1.Post("/users/register", handlers.NewRegisterUserHandler().Handle)
 	v1.Patch("/users/:id/verify/:token", handlers.NewVerifyUserHandler().Handle)
 
+	v1.Get("/projects/:projectId/invites/:token", handlers.NewShowInvitationByProjectAndTokenHandler().Handle)
+
 	// auth middleware - separate protected routes
 	api.Use(middlewares.HandleAuth)
 

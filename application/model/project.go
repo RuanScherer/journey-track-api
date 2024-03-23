@@ -113,3 +113,10 @@ type ListProjectInvitesRequest struct {
 }
 
 type ListProjectInvitesResponse = []*ProjectInvite
+
+type ShowInvitationByProjectAndTokenUseCaseRequest struct {
+	ProjectID string `json:"project_id" valid:"required"`
+	Token     string `json:"token" valid:"required"`
+}
+
+type ShowInvitationByProjectAndTokenUseCaseResponse ProjectInvite
