@@ -8,6 +8,7 @@ import (
 	"github.com/RuanScherer/journey-track-api/adapters/email"
 	"github.com/RuanScherer/journey-track-api/adapters/email/utils"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
+	"github.com/RuanScherer/journey-track-api/config"
 	"github.com/RuanScherer/journey-track-api/domain/model"
 	"github.com/RuanScherer/journey-track-api/domain/repository"
 	"github.com/matcornic/hermes/v2"
@@ -161,6 +162,14 @@ func (useCase *InviteProjectMembersUseCase) sendProjectInviteEmail(inviteId stri
 		return
 	}
 
+	frontendUrl := config.GetAppConfig().FrontendUrl
+	answerInviteLink := fmt.Sprintf(
+		"%s/answer-invitation?projectId=%s&token=%s",
+		frontendUrl,
+		invite.ProjectID,
+		*invite.Token,
+	)
+
 	emailConfig := hermes.Email{
 		Body: hermes.Body{
 			Name:  invite.User.Name,
@@ -175,7 +184,7 @@ func (useCase *InviteProjectMembersUseCase) sendProjectInviteEmail(inviteId stri
 					Button: hermes.Button{
 						Color: "#f25d9c",
 						Text:  "Answer invite",
-						Link:  "#", // TODO: Add answer invite link when frontend is ready
+						Link:  answerInviteLink,
 					},
 				},
 			},
