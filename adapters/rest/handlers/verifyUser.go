@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/RuanScherer/journey-track-api/adapters/db"
-	"github.com/RuanScherer/journey-track-api/adapters/db/repositories"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres/repositories"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/utils"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
@@ -14,7 +14,7 @@ type VerifyUserHandler struct {
 }
 
 func NewVerifyUserHandler() *VerifyUserHandler {
-	userRepository := repositories.NewUserDBRepository(db.GetConnection())
+	userRepository := repositories.NewUserPostgresRepository(postgres.GetConnection())
 	useCase := *usecase.NewVerifyUserUseCase(userRepository)
 	return &VerifyUserHandler{useCase: useCase}
 }

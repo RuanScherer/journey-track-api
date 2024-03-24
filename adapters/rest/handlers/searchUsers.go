@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/RuanScherer/journey-track-api/adapters/db"
-	"github.com/RuanScherer/journey-track-api/adapters/db/repositories"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres/repositories"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/model"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/utils"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
@@ -18,7 +18,7 @@ type SearchUsersHandler struct {
 }
 
 func NewSearchUsersHandler() *SearchUsersHandler {
-	userRepository := repositories.NewUserDBRepository(db.GetConnection())
+	userRepository := repositories.NewUserPostgresRepository(postgres.GetConnection())
 	useCase := *usecase.NewSearchUsersUseCase(userRepository)
 	return &SearchUsersHandler{useCase: useCase}
 }

@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/RuanScherer/journey-track-api/adapters/db"
-	"github.com/RuanScherer/journey-track-api/adapters/db/repositories"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres/repositories"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/utils"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
@@ -14,9 +14,9 @@ type RevokeProjectInviteHandler struct {
 }
 
 func NewRevokeProjectInviteHandler() *RevokeProjectInviteHandler {
-	db := db.GetConnection()
-	projectInviteRepository := repositories.NewProjectInviteDBRepository(db)
-	userRepository := repositories.NewUserDBRepository(db)
+	db := postgres.GetConnection()
+	projectInviteRepository := repositories.NewProjectInvitePostgresRepository(db)
+	userRepository := repositories.NewUserPostgresRepository(db)
 	useCase := *usecase.NewRevokeProjectInviteUseCase(projectInviteRepository, userRepository)
 	return &RevokeProjectInviteHandler{useCase: useCase}
 }

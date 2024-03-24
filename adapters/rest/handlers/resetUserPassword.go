@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/RuanScherer/journey-track-api/adapters/db"
-	"github.com/RuanScherer/journey-track-api/adapters/db/repositories"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres/repositories"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/model"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/utils"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
@@ -15,7 +15,7 @@ type ResetUserPassword struct {
 }
 
 func NewResetUserPassword() *ResetUserPassword {
-	userRepository := repositories.NewUserDBRepository(db.GetConnection())
+	userRepository := repositories.NewUserPostgresRepository(postgres.GetConnection())
 	useCase := *usecase.NewResetUserPasswordUseCase(userRepository)
 	return &ResetUserPassword{useCase: useCase}
 }

@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/RuanScherer/journey-track-api/adapters/db"
-	"github.com/RuanScherer/journey-track-api/adapters/db/repositories"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres/repositories"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/model"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/utils"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
@@ -15,7 +15,7 @@ type EditProjectHandler struct {
 }
 
 func NewEditProjectHandler() *EditProjectHandler {
-	projectRepository := repositories.NewProjectDBRepository(db.GetConnection())
+	projectRepository := repositories.NewProjectPostgresRepository(postgres.GetConnection())
 	useCase := *usecase.NewEditProjectUseCase(projectRepository)
 	return &EditProjectHandler{useCase: useCase}
 }

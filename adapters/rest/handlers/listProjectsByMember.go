@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/RuanScherer/journey-track-api/adapters/db"
-	"github.com/RuanScherer/journey-track-api/adapters/db/repositories"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres/repositories"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
 	"github.com/gofiber/fiber/v2"
@@ -13,7 +13,7 @@ type ListProjectsByMemberHandler struct {
 }
 
 func NewListProjectsByMemberHandler() *ListProjectsByMemberHandler {
-	projectRepository := repositories.NewProjectDBRepository(db.GetConnection())
+	projectRepository := repositories.NewProjectPostgresRepository(postgres.GetConnection())
 	useCase := *usecase.NewListProjectsByMemberUseCase(projectRepository)
 	return &ListProjectsByMemberHandler{useCase: useCase}
 }

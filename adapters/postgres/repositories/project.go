@@ -6,23 +6,23 @@ import (
 	"gorm.io/gorm"
 )
 
-type ProjectDBRepository struct {
+type ProjectPostgresRepository struct {
 	DB *gorm.DB
 }
 
-func NewProjectDBRepository(db *gorm.DB) *ProjectDBRepository {
-	return &ProjectDBRepository{DB: db}
+func NewProjectPostgresRepository(db *gorm.DB) *ProjectPostgresRepository {
+	return &ProjectPostgresRepository{DB: db}
 }
 
-func (repository *ProjectDBRepository) Register(project *model.Project) error {
+func (repository *ProjectPostgresRepository) Register(project *model.Project) error {
 	return repository.DB.Create(project).Error
 }
 
-func (repository *ProjectDBRepository) Save(project *model.Project) error {
+func (repository *ProjectPostgresRepository) Save(project *model.Project) error {
 	return repository.DB.Save(project).Error
 }
 
-func (repository *ProjectDBRepository) FindByMemberId(memberId string) ([]*model.Project, error) {
+func (repository *ProjectPostgresRepository) FindByMemberId(memberId string) ([]*model.Project, error) {
 	projects := []*model.Project{}
 	err := repository.DB.
 		Joins("inner join user_projects on user_projects.project_id = projects.id").
@@ -35,7 +35,7 @@ func (repository *ProjectDBRepository) FindByMemberId(memberId string) ([]*model
 	return projects, nil
 }
 
-func (repository *ProjectDBRepository) FindById(id string) (*model.Project, error) {
+func (repository *ProjectPostgresRepository) FindById(id string) (*model.Project, error) {
 	project := &model.Project{}
 	err := repository.DB.
 		Preload("Members").
@@ -49,7 +49,7 @@ func (repository *ProjectDBRepository) FindById(id string) (*model.Project, erro
 	return project, nil
 }
 
-func (repository *ProjectDBRepository) FindMembersCountAndEventsCountById(
+func (repository *ProjectPostgresRepository) FindMembersCountAndEventsCountById(
 	id string,
 ) (*domainrepositories.ProjectInvitesCountAndEventsCount, error) {
 	result := &domainrepositories.ProjectInvitesCountAndEventsCount{}
@@ -67,12 +67,12 @@ func (repository *ProjectDBRepository) FindMembersCountAndEventsCountById(
 	return result, nil
 }
 
-func (repository *ProjectDBRepository) DeleteById(id string) error {
+func (repository *ProjectPostgresRepository) DeleteById(id string) error {
 	err := repository.DB.Where("id = ?", id).Delete(&model.Project{}).Error
 	return err
 }
 
-func (repository *ProjectDBRepository) HasMember(projectID, memberID string) (bool, error) {
+func (repository *ProjectPostgresRepository) HasMember(projectID, memberID string) (bool, error) {
 	var count int64
 	err := repository.DB.
 		Table("user_projects").

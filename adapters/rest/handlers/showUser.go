@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/RuanScherer/journey-track-api/adapters/db"
-	"github.com/RuanScherer/journey-track-api/adapters/db/repositories"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres/repositories"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
 	"github.com/gofiber/fiber/v2"
@@ -13,7 +13,7 @@ type ShowUserHandler struct {
 }
 
 func NewShowUserHandler() *ShowUserHandler {
-	userRepository := repositories.NewUserDBRepository(db.GetConnection())
+	userRepository := repositories.NewUserPostgresRepository(postgres.GetConnection())
 	useCase := *usecase.NewShowUserUseCase(userRepository)
 	return &ShowUserHandler{useCase: useCase}
 }

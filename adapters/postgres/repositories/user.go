@@ -1,29 +1,29 @@
 package repositories
 
 import (
-	"github.com/RuanScherer/journey-track-api/adapters/db/scopes"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres/scopes"
 	"github.com/RuanScherer/journey-track-api/domain/model"
 	domainrepositories "github.com/RuanScherer/journey-track-api/domain/repository"
 	"gorm.io/gorm"
 )
 
-type UserDBRepository struct {
+type UserPostgresRepository struct {
 	DB *gorm.DB
 }
 
-func NewUserDBRepository(db *gorm.DB) *UserDBRepository {
-	return &UserDBRepository{DB: db}
+func NewUserPostgresRepository(db *gorm.DB) *UserPostgresRepository {
+	return &UserPostgresRepository{DB: db}
 }
 
-func (repository *UserDBRepository) Register(user *model.User) error {
+func (repository *UserPostgresRepository) Register(user *model.User) error {
 	return repository.DB.Create(user).Error
 }
 
-func (repository *UserDBRepository) Save(user *model.User) error {
+func (repository *UserPostgresRepository) Save(user *model.User) error {
 	return repository.DB.Save(user).Error
 }
 
-func (repository *UserDBRepository) FindById(id string) (*model.User, error) {
+func (repository *UserPostgresRepository) FindById(id string) (*model.User, error) {
 	var user model.User
 	err := repository.DB.
 		Preload("Projects").
@@ -37,7 +37,7 @@ func (repository *UserDBRepository) FindById(id string) (*model.User, error) {
 	return &user, nil
 }
 
-func (repository *UserDBRepository) FindByEmail(email string) (*model.User, error) {
+func (repository *UserPostgresRepository) FindByEmail(email string) (*model.User, error) {
 	var user model.User
 	err := repository.DB.Where("email = ?", email).First(&user).Error
 	if err != nil {
@@ -46,7 +46,7 @@ func (repository *UserDBRepository) FindByEmail(email string) (*model.User, erro
 	return &user, nil
 }
 
-func (repository *UserDBRepository) Search(options domainrepositories.UserSearchOptions) ([]*model.User, error) {
+func (repository *UserPostgresRepository) Search(options domainrepositories.UserSearchOptions) ([]*model.User, error) {
 	users := []*model.User{}
 	err := repository.DB.
 		Joins("left join user_projects on users.id = user_projects.user_id and user_projects.project_id not in (?)", options.ExcludedProjectIDs).

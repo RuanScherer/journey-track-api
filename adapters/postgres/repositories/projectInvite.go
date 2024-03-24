@@ -5,35 +5,35 @@ import (
 	"gorm.io/gorm"
 )
 
-type ProjectInviteDBRepository struct {
+type ProjectInvitePostgresRepository struct {
 	DB *gorm.DB
 }
 
-func NewProjectInviteDBRepository(db *gorm.DB) *ProjectInviteDBRepository {
-	return &ProjectInviteDBRepository{DB: db}
+func NewProjectInvitePostgresRepository(db *gorm.DB) *ProjectInvitePostgresRepository {
+	return &ProjectInvitePostgresRepository{DB: db}
 }
 
-func (repository *ProjectInviteDBRepository) Create(projectInvite *model.ProjectInvite) error {
+func (repository *ProjectInvitePostgresRepository) Create(projectInvite *model.ProjectInvite) error {
 	return repository.DB.Create(projectInvite).Error
 }
 
-func (repository *ProjectInviteDBRepository) BatchCreate(projectInvites []*model.ProjectInvite) error {
+func (repository *ProjectInvitePostgresRepository) BatchCreate(projectInvites []*model.ProjectInvite) error {
 	if len(projectInvites) == 0 {
 		return nil
 	}
 	return repository.DB.Create(projectInvites).Error
 }
 
-func (repository *ProjectInviteDBRepository) Save(projectInvite *model.ProjectInvite) error {
+func (repository *ProjectInvitePostgresRepository) Save(projectInvite *model.ProjectInvite) error {
 	return repository.DB.Save(projectInvite).Error
 }
 
-func (repository *ProjectInviteDBRepository) DeleteById(projectInviteId string) error {
+func (repository *ProjectInvitePostgresRepository) DeleteById(projectInviteId string) error {
 	err := repository.DB.Where("id = ?", projectInviteId).Delete(&model.ProjectInvite{}).Error
 	return err
 }
 
-func (repository *ProjectInviteDBRepository) FindById(projectInviteId string) (*model.ProjectInvite, error) {
+func (repository *ProjectInvitePostgresRepository) FindById(projectInviteId string) (*model.ProjectInvite, error) {
 	projectInvite := &model.ProjectInvite{}
 	err := repository.DB.
 		Preload("User").
@@ -47,7 +47,7 @@ func (repository *ProjectInviteDBRepository) FindById(projectInviteId string) (*
 	return projectInvite, nil
 }
 
-func (repository *ProjectInviteDBRepository) FindByProjectAndToken(
+func (repository *ProjectInvitePostgresRepository) FindByProjectAndToken(
 	projectId string,
 	token string,
 ) (*model.ProjectInvite, error) {
@@ -64,7 +64,7 @@ func (repository *ProjectInviteDBRepository) FindByProjectAndToken(
 	return projectInvite, nil
 }
 
-func (repository *ProjectInviteDBRepository) FindPendingByUserAndProject(
+func (repository *ProjectInvitePostgresRepository) FindPendingByUserAndProject(
 	userId string,
 	projectId string,
 ) (*model.ProjectInvite, error) {
@@ -81,7 +81,7 @@ func (repository *ProjectInviteDBRepository) FindPendingByUserAndProject(
 	return projectInvite, nil
 }
 
-func (repository *ProjectInviteDBRepository) ListByProjectAndStatus(
+func (repository *ProjectInvitePostgresRepository) ListByProjectAndStatus(
 	projectId string,
 	status string,
 ) ([]*model.ProjectInvite, error) {

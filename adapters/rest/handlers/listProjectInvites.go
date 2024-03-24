@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/RuanScherer/journey-track-api/adapters/db"
-	"github.com/RuanScherer/journey-track-api/adapters/db/repositories"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres/repositories"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/utils"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
@@ -15,9 +15,9 @@ type ListProjectInvitesHandler struct {
 }
 
 func NewListProjectInvitesHandler() *ListProjectInvitesHandler {
-	db := db.GetConnection()
-	projectInviteRepository := repositories.NewProjectInviteDBRepository(db)
-	projectRepository := repositories.NewProjectDBRepository(db)
+	db := postgres.GetConnection()
+	projectInviteRepository := repositories.NewProjectInvitePostgresRepository(db)
+	projectRepository := repositories.NewProjectPostgresRepository(db)
 	useCase := usecase.NewListProjectInvitesUseCase(projectInviteRepository, projectRepository)
 	return &ListProjectInvitesHandler{useCase}
 }

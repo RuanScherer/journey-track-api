@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/RuanScherer/journey-track-api/adapters/db"
-	"github.com/RuanScherer/journey-track-api/adapters/db/repositories"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres/repositories"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/utils"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
@@ -14,9 +14,9 @@ type GetProjectStatsHandler struct {
 }
 
 func NewGetProjectStatsHandler() *GetProjectStatsHandler {
-	db := db.GetConnection()
-	projectRepository := repositories.NewProjectDBRepository(db)
-	userRepository := repositories.NewUserDBRepository(db)
+	db := postgres.GetConnection()
+	projectRepository := repositories.NewProjectPostgresRepository(db)
+	userRepository := repositories.NewUserPostgresRepository(db)
 	useCase := *usecase.NewGetProjectStatsUseCase(projectRepository, userRepository)
 	return &GetProjectStatsHandler{useCase: useCase}
 }

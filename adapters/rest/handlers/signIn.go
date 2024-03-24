@@ -3,8 +3,8 @@ package handlers
 import (
 	"time"
 
-	"github.com/RuanScherer/journey-track-api/adapters/db"
-	"github.com/RuanScherer/journey-track-api/adapters/db/repositories"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres"
+	"github.com/RuanScherer/journey-track-api/adapters/postgres/repositories"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/model"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/utils"
 	"github.com/RuanScherer/journey-track-api/application/jwt"
@@ -18,7 +18,7 @@ type SignInHandler struct {
 }
 
 func NewSignInHandler() *SignInHandler {
-	userRepository := repositories.NewUserDBRepository(db.GetConnection())
+	userRepository := repositories.NewUserPostgresRepository(postgres.GetConnection())
 	useCase := *usecase.NewSignInUseCase(userRepository)
 	return &SignInHandler{useCase: useCase}
 }
