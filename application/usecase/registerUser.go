@@ -2,14 +2,14 @@ package usecase
 
 import (
 	"fmt"
+	emailutils "github.com/RuanScherer/journey-track-api/adapters/emailtemplate"
+	"github.com/RuanScherer/journey-track-api/application/email"
+	"github.com/RuanScherer/journey-track-api/application/repository"
 	"log"
 
-	"github.com/RuanScherer/journey-track-api/adapters/email"
-	emailutils "github.com/RuanScherer/journey-track-api/adapters/email/utils"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/config"
 	"github.com/RuanScherer/journey-track-api/domain/model"
-	"github.com/RuanScherer/journey-track-api/domain/repository"
 	"github.com/matcornic/hermes/v2"
 	"gorm.io/gorm"
 )
@@ -42,7 +42,7 @@ func (useCase *RegisterUserUseCase) Execute(
 		if err == gorm.ErrDuplicatedKey {
 			return nil, appmodel.NewAppError(
 				"user_email_already_used",
-				"There's already an user using this email",
+				"There's already an user using this smtpemail",
 				appmodel.ErrorTypeValidation,
 			)
 		}

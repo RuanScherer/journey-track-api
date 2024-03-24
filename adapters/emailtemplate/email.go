@@ -1,4 +1,4 @@
-package utils
+package emailtemplate
 
 import "github.com/matcornic/hermes/v2"
 

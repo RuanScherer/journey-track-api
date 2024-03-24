@@ -1,8 +1,8 @@
 package repositories
 
 import (
+	domainrepositories "github.com/RuanScherer/journey-track-api/application/repository"
 	"github.com/RuanScherer/journey-track-api/domain/model"
-	domainrepositories "github.com/RuanScherer/journey-track-api/domain/repository"
 	"gorm.io/gorm"
 )
 
@@ -52,7 +52,7 @@ func (repository *ProjectPostgresRepository) FindById(id string) (*model.Project
 func (repository *ProjectPostgresRepository) FindMembersCountAndEventsCountById(
 	id string,
 ) (*domainrepositories.ProjectInvitesCountAndEventsCount, error) {
-	result := &domainrepositories.ProjectInvitesCountAndEventsCount{}
+	result := &repository.ProjectInvitesCountAndEventsCount{}
 	err := repository.DB.
 		Table("projects").
 		Joins("left join project_invites on projects.id = project_invites.project_id").

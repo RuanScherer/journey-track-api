@@ -2,19 +2,19 @@ package usecase
 
 import (
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
+	repository2 "github.com/RuanScherer/journey-track-api/application/repository"
 	"github.com/RuanScherer/journey-track-api/domain/model"
-	"github.com/RuanScherer/journey-track-api/domain/repository"
 	"gorm.io/gorm"
 )
 
 type ListProjectInvitesUseCase struct {
-	projectInviteRepository repository.ProjectInviteRepository
-	projectRepository       repository.ProjectRepository
+	projectInviteRepository repository2.ProjectInviteRepository
+	projectRepository       repository2.ProjectRepository
 }
 
 func NewListProjectInvitesUseCase(
-	projectInviteRepository repository.ProjectInviteRepository,
-	projectRepository repository.ProjectRepository,
+	projectInviteRepository repository2.ProjectInviteRepository,
+	projectRepository repository2.ProjectRepository,
 ) *ListProjectInvitesUseCase {
 	return &ListProjectInvitesUseCase{
 		projectInviteRepository,

@@ -2,8 +2,8 @@ package repositories
 
 import (
 	"github.com/RuanScherer/journey-track-api/adapters/postgres/scopes"
+	domainrepositories "github.com/RuanScherer/journey-track-api/application/repository"
 	"github.com/RuanScherer/journey-track-api/domain/model"
-	domainrepositories "github.com/RuanScherer/journey-track-api/domain/repository"
 	"gorm.io/gorm"
 )
 
@@ -39,7 +39,7 @@ func (repository *UserPostgresRepository) FindById(id string) (*model.User, erro
 
 func (repository *UserPostgresRepository) FindByEmail(email string) (*model.User, error) {
 	var user model.User
-	err := repository.DB.Where("email = ?", email).First(&user).Error
+	err := repository.DB.Where("smtpemail = ?", email).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (repository *UserPostgresRepository) Search(options domainrepositories.User
 	users := []*model.User{}
 	err := repository.DB.
 		Joins("left join user_projects on users.id = user_projects.user_id and user_projects.project_id not in (?)", options.ExcludedProjectIDs).
-		Where("users.email like ?", "%"+options.Email+"%").
+		Where("users.smtpemail like ?", "%"+options.Email+"%").
 		Group("users.id").
 		Scopes(
 			scopes.Paginate(scopes.PaginationOptions{

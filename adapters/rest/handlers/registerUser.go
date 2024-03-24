@@ -3,9 +3,9 @@ package handlers
 import (
 	"github.com/RuanScherer/journey-track-api/adapters/postgres"
 	"github.com/RuanScherer/journey-track-api/adapters/postgres/repositories"
-	"github.com/RuanScherer/journey-track-api/adapters/email"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/model"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/utils"
+	"github.com/RuanScherer/journey-track-api/adapters/smtpemail"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
 	"github.com/gofiber/fiber/v2"
@@ -17,7 +17,7 @@ type RegisterUserHandler struct {
 
 func NewRegisterUserHandler() *RegisterUserHandler {
 	userRepository := repositories.NewUserPostgresRepository(postgres.GetConnection())
-	emailService := email.NewSmtpEmailService()
+	emailService := smtpemail.NewSmtpEmailService()
 	useCase := *usecase.NewRegisterUserUseCase(userRepository, emailService)
 	return &RegisterUserHandler{useCase: useCase}
 }

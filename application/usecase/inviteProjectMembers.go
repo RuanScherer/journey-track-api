@@ -3,29 +3,29 @@ package usecase
 import (
 	"errors"
 	"fmt"
+	"github.com/RuanScherer/journey-track-api/adapters/emailtemplate"
+	"github.com/RuanScherer/journey-track-api/application/email"
+	repository2 "github.com/RuanScherer/journey-track-api/application/repository"
 	"log"
 
-	"github.com/RuanScherer/journey-track-api/adapters/email"
-	"github.com/RuanScherer/journey-track-api/adapters/email/utils"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/config"
 	"github.com/RuanScherer/journey-track-api/domain/model"
-	"github.com/RuanScherer/journey-track-api/domain/repository"
 	"github.com/matcornic/hermes/v2"
 	"gorm.io/gorm"
 )
 
 type InviteProjectMembersUseCase struct {
-	projectRepository       repository.ProjectRepository
-	userRepository          repository.UserRepository
-	projectInviteRepository repository.ProjectInviteRepository
+	projectRepository       repository2.ProjectRepository
+	userRepository          repository2.UserRepository
+	projectInviteRepository repository2.ProjectInviteRepository
 	emailService            email.EmailService
 }
 
 func NewInviteProjectMembersUseCase(
-	projectRepository repository.ProjectRepository,
-	userRepository repository.UserRepository,
-	projectInviteRepository repository.ProjectInviteRepository,
+	projectRepository repository2.ProjectRepository,
+	userRepository repository2.UserRepository,
+	projectInviteRepository repository2.ProjectInviteRepository,
 	emailService email.EmailService,
 ) *InviteProjectMembersUseCase {
 	return &InviteProjectMembersUseCase{
@@ -191,7 +191,7 @@ func (useCase *InviteProjectMembersUseCase) sendProjectInviteEmail(inviteId stri
 			Signature: "Regards",
 		},
 	}
-	body, err := utils.GenerateEmailHtml(emailConfig)
+	body, err := emailtemplate.GenerateEmailHtml(emailConfig)
 	if err != nil {
 		log.Print(err)
 		return

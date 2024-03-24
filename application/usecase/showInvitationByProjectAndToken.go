@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"github.com/RuanScherer/journey-track-api/application/model"
-	"github.com/RuanScherer/journey-track-api/domain/repository"
+	"github.com/RuanScherer/journey-track-api/application/repository"
 	"gorm.io/gorm"
 )
 

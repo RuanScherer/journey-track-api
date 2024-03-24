@@ -2,18 +2,18 @@ package usecase
 
 import (
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
-	"github.com/RuanScherer/journey-track-api/domain/repository"
+	repository2 "github.com/RuanScherer/journey-track-api/application/repository"
 	"gorm.io/gorm"
 )
 
 type RevokeProjectInviteUseCase struct {
-	projectInviteRepository repository.ProjectInviteRepository
-	userRepository          repository.UserRepository
+	projectInviteRepository repository2.ProjectInviteRepository
+	userRepository          repository2.UserRepository
 }
 
 func NewRevokeProjectInviteUseCase(
-	projectInviteRepository repository.ProjectInviteRepository,
-	userRepository repository.UserRepository,
+	projectInviteRepository repository2.ProjectInviteRepository,
+	userRepository repository2.UserRepository,
 ) *RevokeProjectInviteUseCase {
 	return &RevokeProjectInviteUseCase{
 		projectInviteRepository,

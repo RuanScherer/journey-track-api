@@ -1,6 +1,7 @@
-package email
+package smtpemail
 
 import (
+	"github.com/RuanScherer/journey-track-api/application/email"
 	"github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/config"
 	"github.com/asaskevich/govalidator"
@@ -24,7 +25,7 @@ func NewSmtpEmailService() *SmtpEmailService {
 	}
 }
 
-func (service *SmtpEmailService) SendEmail(email EmailSendingConfig) error {
+func (service *SmtpEmailService) SendEmail(email email.EmailSendingConfig) error {
 	_, err := govalidator.ValidateStruct(&email)
 	if err != nil {
 		return model.NewAppError("invalid_email_sending_config", err.Error(), model.ErrorTypeValidation)

@@ -37,7 +37,7 @@ func (handler *SearchUsersHandler) Handle(ctx *fiber.Ctx) error {
 	req := &appmodel.SearchUsersRequest{
 		ActorID:            ctx.Locals("sessionUser").(appmodel.AuthUser).ID,
 		ExcludedProjectIDs: strings.Split(ctx.Query("excluded_project_ids"), ","),
-		Email:              ctx.Query("email"),
+		Email:              ctx.Query("smtpemail"),
 		Page:               page,
 		PageSize:           pageSize,
 	}

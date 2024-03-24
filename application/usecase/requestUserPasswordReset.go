@@ -2,14 +2,14 @@ package usecase
 
 import (
 	"fmt"
+	emailutils "github.com/RuanScherer/journey-track-api/adapters/emailtemplate"
+	"github.com/RuanScherer/journey-track-api/application/email"
+	"github.com/RuanScherer/journey-track-api/application/repository"
 	"log"
 
-	"github.com/RuanScherer/journey-track-api/adapters/email"
-	emailutils "github.com/RuanScherer/journey-track-api/adapters/email/utils"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/config"
 	"github.com/RuanScherer/journey-track-api/domain/model"
-	"github.com/RuanScherer/journey-track-api/domain/repository"
 	"github.com/matcornic/hermes/v2"
 )
 

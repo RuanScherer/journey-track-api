@@ -3,7 +3,7 @@ package usecase
 import (
 	"github.com/RuanScherer/journey-track-api/application/jwt"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
-	"github.com/RuanScherer/journey-track-api/domain/repository"
+	"github.com/RuanScherer/journey-track-api/application/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 
