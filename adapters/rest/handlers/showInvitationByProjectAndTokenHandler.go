@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/RuanScherer/journey-track-api/adapters/db"
-	"github.com/RuanScherer/journey-track-api/adapters/db/repository"
+	"github.com/RuanScherer/journey-track-api/adapters/db/repositories"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/utils"
 	"github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
@@ -15,7 +15,7 @@ type ShowInvitationByProjectAndTokenHandler struct {
 
 func NewShowInvitationByProjectAndTokenHandler() *ShowInvitationByProjectAndTokenHandler {
 	db := db.GetConnection()
-	projectInviteRepository := repository.NewProjectInviteDBRepository(db)
+	projectInviteRepository := repositories.NewProjectInviteDBRepository(db)
 	useCase := *usecase.NewShowInvitationByProjectAndTokenUseCase(projectInviteRepository)
 	return &ShowInvitationByProjectAndTokenHandler{useCase}
 }

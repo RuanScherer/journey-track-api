@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/RuanScherer/journey-track-api/adapters/db"
-	"github.com/RuanScherer/journey-track-api/adapters/db/repository"
+	"github.com/RuanScherer/journey-track-api/adapters/db/repositories"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/model"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/utils"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
@@ -18,7 +18,7 @@ type SearchUsersHandler struct {
 }
 
 func NewSearchUsersHandler() *SearchUsersHandler {
-	userRepository := repository.NewUserDBRepository(db.GetConnection())
+	userRepository := repositories.NewUserDBRepository(db.GetConnection())
 	useCase := *usecase.NewSearchUsersUseCase(userRepository)
 	return &SearchUsersHandler{useCase: useCase}
 }
@@ -35,11 +35,11 @@ func (handler *SearchUsersHandler) Handle(ctx *fiber.Ctx) error {
 	}
 
 	req := &appmodel.SearchUsersRequest{
-		ActorID:  ctx.Locals("sessionUser").(appmodel.AuthUser).ID,
+		ActorID:            ctx.Locals("sessionUser").(appmodel.AuthUser).ID,
 		ExcludedProjectIDs: strings.Split(ctx.Query("excluded_project_ids"), ","),
-		Email:    ctx.Query("email"),
-		Page:     page,
-		PageSize: pageSize,
+		Email:              ctx.Query("email"),
+		Page:               page,
+		PageSize:           pageSize,
 	}
 
 	err = utils.ValidateRequestBody(req)

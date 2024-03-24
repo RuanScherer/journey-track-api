@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/RuanScherer/journey-track-api/adapters/db"
-	"github.com/RuanScherer/journey-track-api/adapters/db/repository"
+	"github.com/RuanScherer/journey-track-api/adapters/db/repositories"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/model"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/utils"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
@@ -16,8 +16,8 @@ type AcceptProjectInviteHandler struct {
 
 func NewAcceptProjectInviteHandler() *AcceptProjectInviteHandler {
 	db := db.GetConnection()
-	projectInviteRepository := repository.NewProjectInviteDBRepository(db)
-	projectRepository := repository.NewProjectDBRepository(db)
+	projectInviteRepository := repositories.NewProjectInviteDBRepository(db)
+	projectRepository := repositories.NewProjectDBRepository(db)
 	useCase := *usecase.NewAcceptProjectInviteUseCase(projectInviteRepository, projectRepository)
 	return &AcceptProjectInviteHandler{useCase: useCase}
 }

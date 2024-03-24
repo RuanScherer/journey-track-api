@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/RuanScherer/journey-track-api/adapters/db"
-	"github.com/RuanScherer/journey-track-api/adapters/db/repository"
+	"github.com/RuanScherer/journey-track-api/adapters/db/repositories"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/model"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/utils"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
@@ -16,8 +16,8 @@ type CreateProjectHandler struct {
 
 func NewCreateProjectHandler() *CreateProjectHandler {
 	db := db.GetConnection()
-	projectRepository := repository.NewProjectDBRepository(db)
-	userRepository := repository.NewUserDBRepository(db)
+	projectRepository := repositories.NewProjectDBRepository(db)
+	userRepository := repositories.NewUserDBRepository(db)
 	useCase := *usecase.NewCreateProjectUseCase(projectRepository, userRepository)
 	return &CreateProjectHandler{useCase: useCase}
 }

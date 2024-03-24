@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/RuanScherer/journey-track-api/adapters/db"
-	"github.com/RuanScherer/journey-track-api/adapters/db/repository"
+	"github.com/RuanScherer/journey-track-api/adapters/db/repositories"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/model"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/utils"
 	"github.com/RuanScherer/journey-track-api/application/jwt"
@@ -18,7 +18,7 @@ type SignInHandler struct {
 }
 
 func NewSignInHandler() *SignInHandler {
-	userRepository := repository.NewUserDBRepository(db.GetConnection())
+	userRepository := repositories.NewUserDBRepository(db.GetConnection())
 	useCase := *usecase.NewSignInUseCase(userRepository)
 	return &SignInHandler{useCase: useCase}
 }

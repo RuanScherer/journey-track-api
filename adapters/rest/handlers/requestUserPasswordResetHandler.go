@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/RuanScherer/journey-track-api/adapters/db"
-	"github.com/RuanScherer/journey-track-api/adapters/db/repository"
+	"github.com/RuanScherer/journey-track-api/adapters/db/repositories"
 	"github.com/RuanScherer/journey-track-api/adapters/email"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/model"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/utils"
@@ -16,7 +16,7 @@ type RequestUserPasswordResetHandler struct {
 }
 
 func NewRequestUserPasswordResetHandler() *RequestUserPasswordResetHandler {
-	userRepository := repository.NewUserDBRepository(db.GetConnection())
+	userRepository := repositories.NewUserDBRepository(db.GetConnection())
 	emailService := email.NewSmtpEmailService()
 	useCase := *usecase.NewRequestUserPasswordResetUseCase(userRepository, emailService)
 	return &RequestUserPasswordResetHandler{useCase: useCase}

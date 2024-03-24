@@ -1,4 +1,4 @@
-package repository
+package repositories
 
 import (
 	"github.com/RuanScherer/journey-track-api/domain/model"

@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/RuanScherer/journey-track-api/adapters/db"
-	"github.com/RuanScherer/journey-track-api/adapters/db/repository"
+	"github.com/RuanScherer/journey-track-api/adapters/db/repositories"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/utils"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
@@ -16,17 +16,17 @@ type ListProjectInvitesHandler struct {
 
 func NewListProjectInvitesHandler() *ListProjectInvitesHandler {
 	db := db.GetConnection()
-	projectInviteRepository := repository.NewProjectInviteDBRepository(db)
-	projectRepository := repository.NewProjectDBRepository(db)
+	projectInviteRepository := repositories.NewProjectInviteDBRepository(db)
+	projectRepository := repositories.NewProjectDBRepository(db)
 	useCase := usecase.NewListProjectInvitesUseCase(projectInviteRepository, projectRepository)
 	return &ListProjectInvitesHandler{useCase}
 }
 
 func (handler *ListProjectInvitesHandler) Handle(ctx *fiber.Ctx) error {
 	req := &appmodel.ListProjectInvitesRequest{
-		ActorID: ctx.Locals("sessionUser").(appmodel.AuthUser).ID,
+		ActorID:   ctx.Locals("sessionUser").(appmodel.AuthUser).ID,
 		ProjectID: ctx.Params("projectId"),
-		Status: ctx.Query("status", model.ProjectInviteStatusPending),
+		Status:    ctx.Query("status", model.ProjectInviteStatusPending),
 	}
 
 	err := utils.ValidateRequestBody(req)
