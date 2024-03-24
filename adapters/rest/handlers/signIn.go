@@ -7,9 +7,9 @@ import (
 	"github.com/RuanScherer/journey-track-api/adapters/db/repository"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/model"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/utils"
+	"github.com/RuanScherer/journey-track-api/application/jwt"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
-	apputils "github.com/RuanScherer/journey-track-api/application/utils"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -45,7 +45,7 @@ func (handler *SignInHandler) Handle(ctx *fiber.Ctx) error {
 		Value:    signInResponse.AccessToken,
 		HTTPOnly: true,
 		Path:     "/",
-		Expires:  time.Now().Add(apputils.JwtExpirationTime),
+		Expires:  time.Now().Add(jwt.JwtExpirationTime),
 	})
 	return ctx.JSON(signInResponse)
 }

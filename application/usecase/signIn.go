@@ -1,8 +1,8 @@
 package usecase
 
 import (
+	"github.com/RuanScherer/journey-track-api/application/jwt"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
-	"github.com/RuanScherer/journey-track-api/application/utils"
 	"github.com/RuanScherer/journey-track-api/domain/repository"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -38,7 +38,7 @@ func (useCase *SignInUseCase) Execute(req *appmodel.SignInRequest) (*appmodel.Si
 		)
 	}
 
-	jwt, err := utils.CreateJwtFromUser(user)
+	jwt, err := jwt.CreateJwtFromUser(user)
 	if err != nil {
 		return nil, appmodel.NewAppError("unexpected_error", err.Error(), appmodel.ErrorTypeServer)
 	}

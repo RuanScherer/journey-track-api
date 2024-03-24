@@ -3,7 +3,7 @@ package middlewares
 import (
 	"time"
 
-	"github.com/RuanScherer/journey-track-api/application/utils"
+	"github.com/RuanScherer/journey-track-api/application/jwt"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -20,7 +20,7 @@ func ExpireAccessTokenCookie(ctx *fiber.Ctx) {
 }
 
 func HandleAuth(ctx *fiber.Ctx) error {
-	claims, err := utils.GetJwtClaims(ctx.Cookies("access_token"))
+	claims, err := jwt.GetJwtClaims(ctx.Cookies("access_token"))
 	if err != nil {
 		ExpireAccessTokenCookie(ctx)
 		return err
