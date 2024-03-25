@@ -2,18 +2,18 @@ package usecase
 
 import (
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
-	repository2 "github.com/RuanScherer/journey-track-api/application/repository"
+	"github.com/RuanScherer/journey-track-api/application/repository"
 	"gorm.io/gorm"
 )
 
 type ShowProjectUseCase struct {
-	projectRepository repository2.ProjectRepository
-	userRepository    repository2.UserRepository
+	projectRepository repository.ProjectRepository
+	userRepository    repository.UserRepository
 }
 
 func NewShowProjectUseCase(
-	projectRepository repository2.ProjectRepository,
-	userRepository repository2.UserRepository,
+	projectRepository repository.ProjectRepository,
+	userRepository repository.UserRepository,
 ) *ShowProjectUseCase {
 	return &ShowProjectUseCase{
 		projectRepository,

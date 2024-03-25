@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"github.com/RuanScherer/journey-track-api/application/factory"
 	"github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/repository"
 	domainmodel "github.com/RuanScherer/journey-track-api/domain/model"
@@ -39,8 +40,7 @@ func TestVerifyUserUseCase_Execute(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Error(t, err, "(database) [unable_to_find_user] unable to find user")
 
-	user, _ := domainmodel.NewUser("john.doe@gmail.com", "John Doe", "fake-password")
-	_ = user.Verify(*user.VerificationToken)
+	user, _ := factory.NewVerifiedUser("john.doe@gmail.com", "John Doe", "fake-password")
 	userRepositoryMock.
 		EXPECT().
 		FindById(req.UserID).
