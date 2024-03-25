@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/RuanScherer/journey-track-api/adapters/rest"
+	"github.com/RuanScherer/journey-track-api/adapters/rest/validator"
 	"time"
 
 	"github.com/RuanScherer/journey-track-api/adapters/postgres"
@@ -19,7 +19,8 @@ type SignInHandler struct {
 
 func NewSignInHandler() *SignInHandler {
 	userRepository := repository.NewUserPostgresRepository(postgres.GetConnection())
-	useCase := *usecase.NewSignInUseCase(userRepository)
+	jwtManager := jwt.NewDefaultManager()
+	useCase := *usecase.NewSignInUseCase(userRepository, jwtManager)
 	return &SignInHandler{useCase: useCase}
 }
 
@@ -30,7 +31,7 @@ func (handler *SignInHandler) Handle(ctx *fiber.Ctx) error {
 		return model.NewRestApiError(fiber.StatusBadRequest, appmodel.ErrInvalidReqData)
 	}
 
-	err = rest.ValidateRequestBody(signInRequest)
+	err = validator.ValidateRequestBody(signInRequest)
 	if err != nil {
 		return err
 	}
@@ -45,7 +46,7 @@ func (handler *SignInHandler) Handle(ctx *fiber.Ctx) error {
 		Value:    signInResponse.AccessToken,
 		HTTPOnly: true,
 		Path:     "/",
-		Expires:  time.Now().Add(jwt.JwtExpirationTime),
+		Expires:  time.Now().Add(jwt.ExpirationTime),
 	})
 	return ctx.JSON(signInResponse)
 }

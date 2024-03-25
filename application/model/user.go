@@ -1,14 +1,14 @@
 package model
 
 type RegisterUserRequest struct {
-	Email    string `json:"smtpemail" valid:"smtpemail,required"`
+	Email    string `json:"email" valid:"email,required"`
 	Name     string `json:"name" valid:"required"`
 	Password string `json:"password" valid:"required,minstringlength(8)"`
 }
 
 type RegisterUserResponse struct {
 	ID         string `json:"id"`
-	Email      string `json:"smtpemail"`
+	Email      string `json:"email"`
 	Name       string `json:"name"`
 	IsVerified bool   `json:"is_verified"`
 }
@@ -19,7 +19,7 @@ type VerifyUserRequest struct {
 }
 
 type SignInRequest struct {
-	Email    string `json:"smtpemail" valid:"smtpemail,required"`
+	Email    string `json:"email" valid:"email,required"`
 	Password string `json:"password" valid:"required"`
 }
 
@@ -30,7 +30,7 @@ type SignInResponse struct {
 
 type SignInUser struct {
 	ID    string `json:"id"`
-	Email string `json:"smtpemail"`
+	Email string `json:"email"`
 	Name  string `json:"name"`
 }
 
@@ -41,13 +41,13 @@ type EditUserRequest struct {
 
 type EditUserResponse struct {
 	ID         string `json:"id"`
-	Email      string `json:"smtpemail"`
+	Email      string `json:"email"`
 	Name       string `json:"name"`
 	IsVerified bool   `json:"is_verified"`
 }
 
 type RequestPasswordResetRequest struct {
-	Email string `json:"smtpemail" valid:"smtpemail,required"`
+	Email string `json:"email" valid:"email,required"`
 }
 
 type PasswordResetRequest struct {
@@ -58,7 +58,7 @@ type PasswordResetRequest struct {
 
 type ShowUserResponse struct {
 	ID         string `json:"id"`
-	Email      string `json:"smtpemail"`
+	Email      string `json:"email"`
 	Name       string `json:"name"`
 	IsVerified bool   `json:"is_verified"`
 }
@@ -66,7 +66,7 @@ type ShowUserResponse struct {
 type SearchUsersRequest struct {
 	ActorID            string   `json:"actor_id"`
 	ExcludedProjectIDs []string `json:"excluded_project_ids"`
-	Email              string   `json:"smtpemail"`
+	Email              string   `json:"email"`
 	Page               int      `json:"page"`
 	PageSize           int      `json:"page_size"`
 }
@@ -75,6 +75,6 @@ type SearchUsersResponse = []*UserSearchResult
 
 type UserSearchResult struct {
 	ID    string `json:"id"`
-	Email string `json:"smtpemail"`
+	Email string `json:"email"`
 	Name  string `json:"name"`
 }

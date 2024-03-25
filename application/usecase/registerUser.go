@@ -42,7 +42,7 @@ func (useCase *RegisterUserUseCase) Execute(
 		if err == gorm.ErrDuplicatedKey {
 			return nil, appmodel.NewAppError(
 				"user_email_already_used",
-				"There's already an user using this smtpemail",
+				"There's already an user using this email",
 				appmodel.ErrorTypeValidation,
 			)
 		}

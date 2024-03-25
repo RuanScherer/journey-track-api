@@ -1,4 +1,4 @@
-package rest
+package validator
 
 import (
 	"net/http"

@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/RuanScherer/journey-track-api/adapters/rest"
+	"github.com/RuanScherer/journey-track-api/adapters/rest/validator"
 	"strconv"
 	"strings"
 
@@ -37,12 +37,12 @@ func (handler *SearchUsersHandler) Handle(ctx *fiber.Ctx) error {
 	req := &appmodel.SearchUsersRequest{
 		ActorID:            ctx.Locals("sessionUser").(appmodel.AuthUser).ID,
 		ExcludedProjectIDs: strings.Split(ctx.Query("excluded_project_ids"), ","),
-		Email:              ctx.Query("smtpemail"),
+		Email:              ctx.Query("email"),
 		Page:               page,
 		PageSize:           pageSize,
 	}
 
-	err = rest.ValidateRequestBody(req)
+	err = validator.ValidateRequestBody(req)
 	if err != nil {
 		return err
 	}

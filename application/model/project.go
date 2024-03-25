@@ -49,7 +49,7 @@ type GetProjectStatsResponse struct {
 type ProjectMember struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`
-	Email string `json:"smtpemail"`
+	Email string `json:"email"`
 }
 
 type ListProjectByMemberResponse = []*ProjectByMember
@@ -87,7 +87,7 @@ type InviteProject struct {
 
 type InviteUser struct {
 	ID    string `json:"id"`
-	Email string `json:"smtpemail"`
+	Email string `json:"email"`
 	Name  string `json:"name"`
 }
 

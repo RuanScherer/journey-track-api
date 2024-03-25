@@ -20,7 +20,7 @@ func ExpireAccessTokenCookie(ctx *fiber.Ctx) {
 }
 
 func HandleAuth(ctx *fiber.Ctx) error {
-	claims, err := jwt.GetJwtClaims(ctx.Cookies("access_token"))
+	claims, err := jwt.NewDefaultManager().GetJwtClaims(ctx.Cookies("access_token"))
 	if err != nil {
 		ExpireAccessTokenCookie(ctx)
 		return err

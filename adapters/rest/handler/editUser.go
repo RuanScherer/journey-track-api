@@ -3,8 +3,8 @@ package handler
 import (
 	"github.com/RuanScherer/journey-track-api/adapters/postgres"
 	"github.com/RuanScherer/journey-track-api/adapters/postgres/repository"
-	"github.com/RuanScherer/journey-track-api/adapters/rest"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/model"
+	"github.com/RuanScherer/journey-track-api/adapters/rest/validator"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
 	"github.com/gofiber/fiber/v2"
@@ -28,7 +28,7 @@ func (handler *EditUserHandler) Handle(ctx *fiber.Ctx) error {
 	}
 	editUserRequest.UserID = ctx.Locals("sessionUser").(appmodel.AuthUser).ID
 
-	err = rest.ValidateRequestBody(editUserRequest)
+	err = validator.ValidateRequestBody(editUserRequest)
 	if err != nil {
 		return err
 	}

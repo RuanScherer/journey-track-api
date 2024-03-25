@@ -7,18 +7,18 @@ import (
 )
 
 func TestNewUser(t *testing.T) {
-	t.Run("should return error when smtpemail is invalid", func(t *testing.T) {
+	t.Run("should return error when email is invalid", func(t *testing.T) {
 		_, err := NewUser("", "name", "password")
 		require.NotNil(t, err)
 		require.Equal(t, "[user] Email is required", err.Error())
 
-		_, err = NewUser("invalid smtpemail", "name", "password")
+		_, err = NewUser("invalid email", "name", "password")
 		require.NotNil(t, err)
-		require.Equal(t, "[user] Invalid smtpemail", err.Error())
+		require.Equal(t, "[user] Invalid email", err.Error())
 
 		_, err = NewUser("invalid@invalid", "name", "password")
 		require.NotNil(t, err)
-		require.Equal(t, "[user] Invalid smtpemail", err.Error())
+		require.Equal(t, "[user] Invalid email", err.Error())
 	})
 
 	t.Run("should return error when name is invalid", func(t *testing.T) {

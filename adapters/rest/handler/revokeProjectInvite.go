@@ -3,7 +3,7 @@ package handler
 import (
 	"github.com/RuanScherer/journey-track-api/adapters/postgres"
 	"github.com/RuanScherer/journey-track-api/adapters/postgres/repository"
-	"github.com/RuanScherer/journey-track-api/adapters/rest"
+	"github.com/RuanScherer/journey-track-api/adapters/rest/validator"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
 	"github.com/gofiber/fiber/v2"
@@ -27,7 +27,7 @@ func (handler *RevokeProjectInviteHandler) Handle(ctx *fiber.Ctx) error {
 		ProjectInviteID: ctx.Params("id"),
 	}
 
-	err := rest.ValidateRequestBody(req)
+	err := validator.ValidateRequestBody(req)
 	if err != nil {
 		return err
 	}

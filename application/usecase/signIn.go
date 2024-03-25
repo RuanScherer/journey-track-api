@@ -9,10 +9,11 @@ import (
 
 type SignInUseCase struct {
 	userRepository repository.UserRepository
+	jwtManager     jwt.Manager
 }
 
-func NewSignInUseCase(userRepository repository.UserRepository) *SignInUseCase {
-	return &SignInUseCase{userRepository}
+func NewSignInUseCase(userRepository repository.UserRepository, jwtManager jwt.Manager) *SignInUseCase {
+	return &SignInUseCase{userRepository, jwtManager}
 }
 
 func (useCase *SignInUseCase) Execute(req *appmodel.SignInRequest) (*appmodel.SignInResponse, *appmodel.AppError) {
@@ -38,13 +39,13 @@ func (useCase *SignInUseCase) Execute(req *appmodel.SignInRequest) (*appmodel.Si
 		)
 	}
 
-	jwt, err := jwt.CreateJwtFromUser(user)
+	token, err := useCase.jwtManager.CreateJwtFromUser(user)
 	if err != nil {
 		return nil, appmodel.NewAppError("unexpected_error", err.Error(), appmodel.ErrorTypeServer)
 	}
 
 	return &appmodel.SignInResponse{
-		AccessToken: jwt,
+		AccessToken: token,
 		User: appmodel.SignInUser{
 			ID:    user.ID,
 			Email: *user.Email,

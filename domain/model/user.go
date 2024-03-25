@@ -12,7 +12,7 @@ import (
 type User struct {
 	gorm.Model
 	ID                 string           `json:"id" gorm:"primaryKey" valid:"uuid~[user] Invalid ID"`
-	Email              *string          `json:"smtpemail" gorm:"type:varchar(255);unique;not null" valid:"required~[user] Email is required,smtpemail~[user] Invalid smtpemail"`
+	Email              *string          `json:"email" gorm:"type:varchar(255);unique;not null" valid:"required~[user] Email is required,email~[user] Invalid email"`
 	Name               string           `json:"name" gorm:"type:varchar(255);not null" valid:"required~[user] Name is required,minstringlength(2)~[user] Name too short"`
 	Password           string           `json:"password" gorm:"type:varchar(255);not null" valid:"required~[user] Password is required,minstringlength(8)~[user] Password too short"`
 	VerificationToken  *string          `gorm:"column:verification_token;type:varchar(255);unique;default:null" valid:"-"`

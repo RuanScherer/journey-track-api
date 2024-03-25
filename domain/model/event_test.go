@@ -9,7 +9,7 @@ import (
 func TestNewEvent(t *testing.T) {
 	t.Run("should get error when project is invalid", func(t *testing.T) {
 		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
-		projectOwner.Verify(*projectOwner.VerificationToken)
+		_ = projectOwner.Verify(*projectOwner.VerificationToken)
 		project, err := NewProject("", projectOwner)
 		require.NotNil(t, err)
 
@@ -19,7 +19,7 @@ func TestNewEvent(t *testing.T) {
 
 	t.Run("should get error when provided name is invalid", func(t *testing.T) {
 		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
-		projectOwner.Verify(*projectOwner.VerificationToken)
+		_ = projectOwner.Verify(*projectOwner.VerificationToken)
 		project, _ := NewProject("Test", projectOwner)
 
 		_, err := NewEvent("", project)
@@ -33,7 +33,7 @@ func TestNewEvent(t *testing.T) {
 
 	t.Run("should create event", func(t *testing.T) {
 		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
-		projectOwner.Verify(*projectOwner.VerificationToken)
+		_ = projectOwner.Verify(*projectOwner.VerificationToken)
 		project, _ := NewProject("Test", projectOwner)
 
 		event, err := NewEvent("Test", project)

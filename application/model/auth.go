@@ -9,6 +9,6 @@ type JwtClaims struct {
 
 type AuthUser struct {
 	ID    string `json:"id"`
-	Email string `json:"smtpemail"`
+	Email string `json:"email"`
 	Name  string `json:"name"`
 }

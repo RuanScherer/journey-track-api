@@ -3,22 +3,21 @@ package handler
 import (
 	"github.com/RuanScherer/journey-track-api/adapters/postgres"
 	"github.com/RuanScherer/journey-track-api/adapters/postgres/repository"
-	"github.com/RuanScherer/journey-track-api/adapters/rest"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/model"
+	"github.com/RuanScherer/journey-track-api/adapters/rest/validator"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
 	"github.com/gofiber/fiber/v2"
 )
 
 type DeclineProjectInviteHandler struct {
-	useCase usecase.AcceptProjectInviteUseCase
+	useCase usecase.DeclineProjectInviteUseCase
 }
 
 func NewDeclineProjectInviteHandler() *DeclineProjectInviteHandler {
 	db := postgres.GetConnection()
 	projectInviteRepository := repository.NewProjectInvitePostgresRepository(db)
-	projectRepository := repository.NewProjectPostgresRepository(db)
-	useCase := *usecase.NewAcceptProjectInviteUseCase(projectInviteRepository, projectRepository)
+	useCase := *usecase.NewDeclineProjectInviteUseCase(projectInviteRepository)
 	return &DeclineProjectInviteHandler{useCase: useCase}
 }
 
@@ -30,7 +29,7 @@ func (handler *DeclineProjectInviteHandler) Handle(ctx *fiber.Ctx) error {
 	}
 	req.ProjectID = ctx.Params("projectId")
 
-	err = rest.ValidateRequestBody(req)
+	err = validator.ValidateRequestBody(req)
 	if err != nil {
 		return err
 	}

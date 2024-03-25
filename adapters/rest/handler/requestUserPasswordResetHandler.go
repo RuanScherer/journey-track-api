@@ -3,8 +3,8 @@ package handler
 import (
 	"github.com/RuanScherer/journey-track-api/adapters/postgres"
 	"github.com/RuanScherer/journey-track-api/adapters/postgres/repository"
-	"github.com/RuanScherer/journey-track-api/adapters/rest"
 	"github.com/RuanScherer/journey-track-api/adapters/rest/model"
+	"github.com/RuanScherer/journey-track-api/adapters/rest/validator"
 	"github.com/RuanScherer/journey-track-api/adapters/smtpemail"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/usecase"
@@ -29,7 +29,7 @@ func (handler *RequestUserPasswordResetHandler) Handle(ctx *fiber.Ctx) error {
 		return model.NewRestApiError(fiber.StatusBadRequest, appmodel.ErrInvalidReqData)
 	}
 
-	err = rest.ValidateRequestBody(req)
+	err = validator.ValidateRequestBody(req)
 	if err != nil {
 		return err
 	}

@@ -11,10 +11,21 @@ import (
 )
 
 const (
-	JwtExpirationTime = time.Hour * 24 * 7
+	ExpirationTime = time.Hour * 24 * 7
 )
 
-func CreateJwtFromUser(user *model.User) (string, error) {
+type Manager interface {
+	CreateJwtFromUser(user *model.User) (string, error)
+	GetJwtClaims(token string) (*appmodel.JwtClaims, error)
+}
+
+type DefaultManager struct{}
+
+func NewDefaultManager() *DefaultManager {
+	return &DefaultManager{}
+}
+
+func (manager *DefaultManager) CreateJwtFromUser(user *model.User) (string, error) {
 	jwtClaims := appmodel.JwtClaims{
 		User: appmodel.AuthUser{
 			ID:    user.ID,
@@ -23,13 +34,13 @@ func CreateJwtFromUser(user *model.User) (string, error) {
 		},
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(JwtExpirationTime)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(ExpirationTime)),
 		},
 	}
-	jwt := jwt.NewWithClaims(jwt.SigningMethodHS256, jwtClaims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwtClaims)
 
 	appConfig := config.GetAppConfig()
-	jwtString, err := jwt.SignedString([]byte(appConfig.JwtSecret))
+	jwtString, err := token.SignedString([]byte(appConfig.JwtSecret))
 	if err != nil {
 		return "", errors.New("error creating access token")
 	}
@@ -37,7 +48,7 @@ func CreateJwtFromUser(user *model.User) (string, error) {
 	return jwtString, nil
 }
 
-func GetJwtClaims(token string) (*appmodel.JwtClaims, error) {
+func (manager *DefaultManager) GetJwtClaims(token string) (*appmodel.JwtClaims, error) {
 	if token == "" {
 		return nil, appmodel.NewAppError("missing_access_token", "missing access token", appmodel.ErrorTypeAuthentication)
 	}
