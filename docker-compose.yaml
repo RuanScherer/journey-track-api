@@ -45,6 +45,5 @@ networks:
   journey-track:
     driver: bridge
     external: false
-    name: journey-track
   journey-track-api:
     driver: bridge
