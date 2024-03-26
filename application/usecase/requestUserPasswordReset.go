@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"fmt"
-	emailutils "github.com/RuanScherer/journey-track-api/adapters/emailtemplate"
+	"github.com/RuanScherer/journey-track-api/adapters/emailtemplate"
 	"github.com/RuanScherer/journey-track-api/application/email"
 	"github.com/RuanScherer/journey-track-api/application/repository"
 	"log"
@@ -52,7 +52,7 @@ func (useCase *RequestUserPasswordResetUseCase) sendPasswordResetEmail(user *mod
 		user.ID,
 		*user.PasswordResetToken,
 	)
-	emailConfig := hermes.Email{
+	emailTemplate := hermes.Email{
 		Body: hermes.Body{
 			Name:  user.Name,
 			Title: "Password reset",
@@ -73,18 +73,18 @@ func (useCase *RequestUserPasswordResetUseCase) sendPasswordResetEmail(user *mod
 			Signature: "Regards",
 		},
 	}
-	body, err := emailutils.GenerateEmailHtml(emailConfig)
+	body, err := emailtemplate.GenerateEmailHtml(emailTemplate)
 	if err != nil {
 		log.Print(err)
 		return
 	}
 
-	email := email.EmailSendingConfig{
+	emailConfig := email.EmailSendingConfig{
 		To:      *user.Email,
 		Subject: "Trackr | Reset your password",
 		Body:    body,
 	}
-	err = useCase.emailService.SendEmail(email)
+	err = useCase.emailService.SendEmail(emailConfig)
 	if err != nil {
 		log.Print(err)
 		return

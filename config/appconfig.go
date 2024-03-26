@@ -32,7 +32,7 @@ func GetAppConfig() *AppConfig {
 func loadConfig() *AppConfig {
 	viper.SetConfigType("env")
 	viper.SetConfigName(".env")
-	viper.AddConfigPath(".")
+	viper.AddConfigPath("/app/")
 
 	viper.SetDefault("DB_LOG_ENABLED", false)
 	viper.SetDefault("REST_API_PORT", 3000)
