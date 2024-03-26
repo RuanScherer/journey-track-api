@@ -43,8 +43,7 @@ func TestShowProjectUseCase_Execute(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Error(t, err, "(validation) [unable_to_find_project] unexpected error")
 
-	owner, _ := factory.NewVerifiedUser("john.doe@gmail.com", "John Doe", "fake-password")
-	project, _ := domainmodel.NewProject("fake-project-id", owner)
+	project, _ := factory.NewProjectWithDefaultOwner("fake-project")
 	projectRepositoryMock.
 		EXPECT().
 		FindById(req.ProjectID).
@@ -59,8 +58,7 @@ func TestShowProjectUseCase_Execute(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Error(t, err, "(validation) [unable_to_identify_user] unable to identify the user trying to see project details")
 
-	owner, _ = factory.NewVerifiedUser("john.doe@gmail.com", "John Doe", "fake-password")
-	project, _ = domainmodel.NewProject("fake-project-id", owner)
+	project, _ = factory.NewProjectWithDefaultOwner("fake-project")
 	actor, _ := domainmodel.NewUser("jane.doe@gmail.com", "Jane Doe", "fake-password")
 	projectRepositoryMock.
 		EXPECT().
@@ -76,9 +74,9 @@ func TestShowProjectUseCase_Execute(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Error(t, err, "(validation) [not_project_member] only project members can see project details")
 
-	owner, _ = factory.NewVerifiedUser("john.doe@gmail.com", "John Doe", "fake-password")
-	project, _ = domainmodel.NewProject("fake-project-id", owner)
-	req.ActorID = owner.ID
+	project, _ = factory.NewProjectWithDefaultOwner("fake-project")
+	req.ActorID = project.OwnerID
+	owner := project.Members[0]
 	projectRepositoryMock.
 		EXPECT().
 		FindById(req.ProjectID).

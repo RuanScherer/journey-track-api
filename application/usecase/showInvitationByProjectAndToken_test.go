@@ -42,8 +42,7 @@ func TestShowInvitationByProjectAndTokenUseCase_Execute(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Error(t, err, "(validation) [unable_to_find_invitation] unexpected error")
 
-	owner, _ := factory.NewVerifiedUser("john.doe@gmail.com", "John Doe", "fake-password")
-	project, _ := domainmodel.NewProject("fake-project-name", owner)
+	project, _ := factory.NewProjectWithDefaultOwner("fake-project-name")
 	user, _ := factory.NewVerifiedUser("jane.doe@gmail.com", "Jane Doe", "fake-password")
 	invitation, _ := domainmodel.NewProjectInvite(project, user)
 	projectInviteMockRepository.

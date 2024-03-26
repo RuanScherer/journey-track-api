@@ -32,7 +32,7 @@ func (handler *RevokeProjectInviteHandler) Handle(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	err = handler.useCase.Exceute(req)
+	err = handler.useCase.Execute(req)
 	if err != nil {
 		return err
 	}

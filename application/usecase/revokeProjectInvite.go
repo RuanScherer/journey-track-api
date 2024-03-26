@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	repository2 "github.com/RuanScherer/journey-track-api/application/repository"
 	"gorm.io/gorm"
@@ -21,10 +22,10 @@ func NewRevokeProjectInviteUseCase(
 	}
 }
 
-func (useCase *RevokeProjectInviteUseCase) Exceute(req *appmodel.RevokeProjectInviteRequest) error {
+func (useCase *RevokeProjectInviteUseCase) Execute(req *appmodel.RevokeProjectInviteRequest) error {
 	projectInvite, err := useCase.projectInviteRepository.FindById(req.ProjectInviteID)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return appmodel.NewAppError("project_invite_not_found", "project invite not found", appmodel.ErrorTypeValidation)
 		}
 		return appmodel.NewAppError("unable_to_find_project_invite", err.Error(), appmodel.ErrorTypeDatabase)
@@ -43,7 +44,7 @@ func (useCase *RevokeProjectInviteUseCase) Exceute(req *appmodel.RevokeProjectIn
 	if err != nil {
 		return appmodel.NewAppError(
 			"unable_to_identify_user",
-			"unable to identify the user trying to see project details",
+			"unable to identify the user trying to revoke the invite",
 			appmodel.ErrorTypeDatabase,
 		)
 	}
