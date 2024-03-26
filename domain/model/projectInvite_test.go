@@ -21,14 +21,14 @@ func TestNewProjectInvite(t *testing.T) {
 
 	t.Run("should get error when user is already a member", func(t *testing.T) {
 		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
-		projectOwner.Verify(*projectOwner.VerificationToken)
+		_ = projectOwner.Verify(*projectOwner.VerificationToken)
 		project, _ := NewProject("test", projectOwner)
 
 		userToInvite, _ := NewUser("member@example.com", "Member", "pass4321")
 		invite, err := NewProjectInvite(project, userToInvite)
 		require.Nil(t, err)
 
-		invite.Accept(*invite.Token)
+		_ = invite.Accept(*invite.Token)
 		project.Members = append(project.Members, userToInvite)
 
 		_, err = NewProjectInvite(project, userToInvite)
@@ -38,7 +38,7 @@ func TestNewProjectInvite(t *testing.T) {
 
 	t.Run("should return project invite when provided project and user are valid", func(t *testing.T) {
 		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
-		projectOwner.Verify(*projectOwner.VerificationToken)
+		_ = projectOwner.Verify(*projectOwner.VerificationToken)
 		project, _ := NewProject("test", projectOwner)
 
 		userToInvite, _ := NewUser("member@example.com", "Member", "pass4321")
@@ -53,7 +53,7 @@ func TestNewProjectInvite(t *testing.T) {
 func TestAccept(t *testing.T) {
 	t.Run("should get error when provided token is invalid", func(t *testing.T) {
 		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
-		projectOwner.Verify(*projectOwner.VerificationToken)
+		_ = projectOwner.Verify(*projectOwner.VerificationToken)
 		project, _ := NewProject("test", projectOwner)
 
 		userToInvite, _ := NewUser("member@example.com", "Member", "pass4321")
@@ -66,7 +66,7 @@ func TestAccept(t *testing.T) {
 
 	t.Run("should get error when invite is not pending", func(t *testing.T) {
 		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
-		projectOwner.Verify(*projectOwner.VerificationToken)
+		_ = projectOwner.Verify(*projectOwner.VerificationToken)
 		project, _ := NewProject("test", projectOwner)
 
 		userToInvite, _ := NewUser("member@example.com", "Member", "pass4321")
@@ -80,7 +80,7 @@ func TestAccept(t *testing.T) {
 
 	t.Run("should accept invite", func(t *testing.T) {
 		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
-		projectOwner.Verify(*projectOwner.VerificationToken)
+		_ = projectOwner.Verify(*projectOwner.VerificationToken)
 		project, _ := NewProject("test", projectOwner)
 
 		userToInvite, _ := NewUser("member@example.com", "Member", "pass4321")
@@ -95,7 +95,7 @@ func TestAccept(t *testing.T) {
 func TestDecline(t *testing.T) {
 	t.Run("should get error when provided token is invalid", func(t *testing.T) {
 		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
-		projectOwner.Verify(*projectOwner.VerificationToken)
+		_ = projectOwner.Verify(*projectOwner.VerificationToken)
 		project, _ := NewProject("test", projectOwner)
 
 		userToInvite, _ := NewUser("member@example.com", "Member", "pass4321")
@@ -108,7 +108,7 @@ func TestDecline(t *testing.T) {
 
 	t.Run("should get error when invited is not pending", func(t *testing.T) {
 		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
-		projectOwner.Verify(*projectOwner.VerificationToken)
+		_ = projectOwner.Verify(*projectOwner.VerificationToken)
 		project, _ := NewProject("test", projectOwner)
 
 		userToInvite, _ := NewUser("member@example.com", "Member", "pass4321")
@@ -122,7 +122,7 @@ func TestDecline(t *testing.T) {
 
 	t.Run("should decline invite", func(t *testing.T) {
 		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
-		projectOwner.Verify(*projectOwner.VerificationToken)
+		_ = projectOwner.Verify(*projectOwner.VerificationToken)
 		project, _ := NewProject("test", projectOwner)
 
 		userToInvite, _ := NewUser("member@example.com", "Member", "pass4321")
@@ -137,7 +137,7 @@ func TestDecline(t *testing.T) {
 func TestCanRevoke(t *testing.T) {
 	t.Run("should not be able to revoke", func(t *testing.T) {
 		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
-		projectOwner.Verify(*projectOwner.VerificationToken)
+		_ = projectOwner.Verify(*projectOwner.VerificationToken)
 		project, _ := NewProject("test", projectOwner)
 
 		userToInvite, _ := NewUser("member@example.com", "Member", "pass4321")
@@ -156,7 +156,7 @@ func TestCanRevoke(t *testing.T) {
 
 	t.Run("should be able to revoke", func(t *testing.T) {
 		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
-		projectOwner.Verify(*projectOwner.VerificationToken)
+		_ = projectOwner.Verify(*projectOwner.VerificationToken)
 		project, _ := NewProject("test", projectOwner)
 
 		userToInvite, _ := NewUser("member@example.com", "Member", "pass4321")
@@ -165,5 +165,20 @@ func TestCanRevoke(t *testing.T) {
 		canRevoke, reason := invite.CanRevoke()
 		require.True(t, canRevoke)
 		require.Empty(t, reason)
+	})
+}
+
+func TestAnswer(t *testing.T) {
+	t.Run("should get error when trying to use an invalid answer", func(t *testing.T) {
+		projectOwner, _ := NewUser("owner@example.com", "Owner", "pass1234")
+		_ = projectOwner.Verify(*projectOwner.VerificationToken)
+		project, _ := NewProject("test", projectOwner)
+
+		userToInvite, _ := NewUser("member@example.com", "Member", "pass4321")
+		invite, _ := NewProjectInvite(project, userToInvite)
+
+		err := invite.answer("invalid-answer", *invite.Token)
+		require.NotNil(t, err)
+		require.Equal(t, "invalid answer provided to invite", err.Error())
 	})
 }
