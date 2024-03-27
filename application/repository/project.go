@@ -13,6 +13,6 @@ type ProjectRepository interface {
 }
 
 type ProjectInvitesCountAndEventsCount struct {
-	InvitesCount int64
-	EventsCount  int64
+	InvitesCount int
+	EventsCount  int
 }

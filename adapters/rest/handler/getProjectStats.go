@@ -16,8 +16,7 @@ type GetProjectStatsHandler struct {
 func NewGetProjectStatsHandler() *GetProjectStatsHandler {
 	db := postgres.GetConnection()
 	projectRepository := repository.NewProjectPostgresRepository(db)
-	userRepository := repository.NewUserPostgresRepository(db)
-	useCase := *usecase.NewGetProjectStatsUseCase(projectRepository, userRepository)
+	useCase := *usecase.NewGetProjectStatsUseCase(projectRepository)
 	return &GetProjectStatsHandler{useCase: useCase}
 }
 
