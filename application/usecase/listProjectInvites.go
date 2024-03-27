@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	repository2 "github.com/RuanScherer/journey-track-api/application/repository"
 	"github.com/RuanScherer/journey-track-api/domain/model"
@@ -43,9 +44,9 @@ func (useCase *ListProjectInvitesUseCase) Execute(
 		status = model.ProjectInviteStatusPending
 	}
 
-	invites, err := useCase.projectInviteRepository.ListByProjectAndStatus(req.ProjectID, req.Status)
+	invites, err := useCase.projectInviteRepository.ListByProjectAndStatus(req.ProjectID, status)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &appmodel.ListProjectInvitesResponse{}, nil
 		}
 		return nil, appmodel.NewAppError(
@@ -55,7 +56,7 @@ func (useCase *ListProjectInvitesUseCase) Execute(
 		)
 	}
 
-	invitesResponse := []*appmodel.ProjectInvite{}
+	var invitesResponse []*appmodel.ProjectInvite
 	for _, invite := range invites {
 		invitesResponse = append(invitesResponse, &appmodel.ProjectInvite{
 			ID: invite.ID,
