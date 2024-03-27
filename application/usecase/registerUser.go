@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	"fmt"
 	emailutils "github.com/RuanScherer/journey-track-api/adapters/emailtemplate"
 	"github.com/RuanScherer/journey-track-api/application/email"
@@ -39,7 +40,7 @@ func (useCase *RegisterUserUseCase) Execute(
 
 	err = useCase.userRepository.Register(user)
 	if err != nil {
-		if err == gorm.ErrDuplicatedKey {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
 			return nil, appmodel.NewAppError(
 				"user_email_already_used",
 				"There's already an user using this email",
@@ -66,7 +67,7 @@ func (useCase *RegisterUserUseCase) sendVerificationEmail(user *model.User) {
 		user.ID,
 		*user.VerificationToken,
 	)
-	emailConfig := hermes.Email{
+	emailTemplate := hermes.Email{
 		Body: hermes.Body{
 			Name:  user.Name,
 			Title: "Account verification",
@@ -87,18 +88,18 @@ func (useCase *RegisterUserUseCase) sendVerificationEmail(user *model.User) {
 			Signature: "Regards",
 		},
 	}
-	body, err := emailutils.GenerateEmailHtml(emailConfig)
+	body, err := emailutils.GenerateEmailHtml(emailTemplate)
 	if err != nil {
 		log.Print(err)
 		return
 	}
 
-	email := email.EmailSendingConfig{
+	emailConfig := email.EmailSendingConfig{
 		To:      *user.Email,
 		Subject: "Trackr | Verify your account",
 		Body:    body,
 	}
-	err = useCase.emailService.SendEmail(email)
+	err = useCase.emailService.SendEmail(emailConfig)
 	if err != nil {
 		log.Print(err)
 		return
