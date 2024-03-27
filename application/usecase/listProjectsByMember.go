@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/repository"
 	"gorm.io/gorm"
@@ -19,7 +20,7 @@ func NewListProjectsByMemberUseCase(
 func (useCase *ListProjectsByMemberUseCase) Execute(memberId string) (*appmodel.ListProjectByMemberResponse, error) {
 	projects, err := useCase.projectRepository.FindByMemberId(memberId)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &appmodel.ListProjectByMemberResponse{}, nil
 		}
 		return nil, appmodel.NewAppError("unable_to_find_projects", err.Error(), appmodel.ErrorTypeDatabase)
