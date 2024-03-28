@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	repository2 "github.com/RuanScherer/journey-track-api/application/repository"
 	"github.com/RuanScherer/journey-track-api/domain/model"
@@ -25,7 +26,7 @@ func NewCreateProjectUseCase(
 func (useCase *CreateProjectUseCase) Execute(req *appmodel.CreateProjectRequest) (*appmodel.CreateProjectResponse, error) {
 	ownerUser, err := useCase.userRepository.FindById(req.OwnerID)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, appmodel.NewAppError(
 				"project_owner_not_found",
 				"project owner not found",
