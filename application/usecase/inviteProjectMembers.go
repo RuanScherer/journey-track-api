@@ -41,7 +41,7 @@ func (useCase *InviteProjectMembersUseCase) Execute(
 ) (*appmodel.InviteProjectMembersResponse, error) {
 	project, err := useCase.projectRepository.FindById(req.ProjectID)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, appmodel.NewAppError("project_not_found", "project not found", appmodel.ErrorTypeValidation)
 		}
 		return nil, appmodel.NewAppError("unable_to_find_project", err.Error(), appmodel.ErrorTypeDatabase)
@@ -123,7 +123,7 @@ func (useCase *InviteProjectMembersUseCase) generateInvite(
 ) (*model.ProjectInvite, *appmodel.AppError) {
 	user, err := useCase.userRepository.FindById(userID)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, appmodel.NewAppError("user_not_found", "user not found", appmodel.ErrorTypeValidation)
 		}
 		return nil, appmodel.NewAppError("unable_to_find_user", err.Error(), appmodel.ErrorTypeDatabase)
