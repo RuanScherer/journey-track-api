@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/repository"
 	"gorm.io/gorm"
@@ -17,7 +18,7 @@ func NewEditProjectUseCase(projectRepository repository.ProjectRepository) *Edit
 func (useCase *EditProjectUseCase) Execute(req *appmodel.EditProjectRequest) (*appmodel.EditProjectResponse, error) {
 	project, err := useCase.projectRepository.FindById(req.ProjectID)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, appmodel.NewAppError("project_not_found", "project not found", appmodel.ErrorTypeValidation)
 		}
 		return nil, appmodel.NewAppError("unable_to_find_project", err.Error(), appmodel.ErrorTypeDatabase)
