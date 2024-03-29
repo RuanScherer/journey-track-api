@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	repository2 "github.com/RuanScherer/journey-track-api/application/repository"
 	"gorm.io/gorm"
@@ -24,7 +25,7 @@ func NewAcceptProjectInviteUseCase(
 func (useCase *AcceptProjectInviteUseCase) Execute(req *appmodel.AnswerProjectInviteRequest) error {
 	projectInvite, err := useCase.projectInviteRepository.FindByProjectAndToken(req.ProjectID, req.InviteToken)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return appmodel.NewAppError("project_invite_not_found", "project invite not found", appmodel.ErrorTypeValidation)
 		}
 		return appmodel.NewAppError("unable_to_find_project_invite", err.Error(), appmodel.ErrorTypeDatabase)
@@ -42,7 +43,7 @@ func (useCase *AcceptProjectInviteUseCase) Execute(req *appmodel.AnswerProjectIn
 
 	project, err := useCase.projectRepository.FindById(projectInvite.Project.ID)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return appmodel.NewAppError("project_not_found", "project not found", appmodel.ErrorTypeValidation)
 		}
 		return appmodel.NewAppError("unable_to_find_project", err.Error(), appmodel.ErrorTypeDatabase)
