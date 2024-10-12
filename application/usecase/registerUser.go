@@ -1,12 +1,14 @@
 package usecase
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	emailutils "github.com/RuanScherer/journey-track-api/adapters/emailtemplate"
-	"github.com/RuanScherer/journey-track-api/application/email"
+	"log/slog"
+
+	"github.com/RuanScherer/journey-track-api/adapters/emailtemplateadptr"
+	"github.com/RuanScherer/journey-track-api/application/kafka"
 	"github.com/RuanScherer/journey-track-api/application/repository"
-	"log"
 
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/config"
@@ -15,18 +17,20 @@ import (
 	"gorm.io/gorm"
 )
 
+var queueVerificationEmail = doQueueVerificationEmail
+
 type RegisterUserUseCase struct {
-	userRepository repository.UserRepository
-	emailService   email.EmailService
+	userRepository  repository.UserRepository
+	producerFactory kafka.ProducerFactory
 }
 
 func NewRegisterUserUseCase(
 	userRepository repository.UserRepository,
-	emailService email.EmailService,
+	producerFactory kafka.ProducerFactory,
 ) *RegisterUserUseCase {
 	return &RegisterUserUseCase{
 		userRepository,
-		emailService,
+		producerFactory,
 	}
 }
 
@@ -50,7 +54,7 @@ func (useCase *RegisterUserUseCase) Execute(
 		return nil, appmodel.NewAppError("unable_to_register_user", "unable to register user", appmodel.ErrorTypeDatabase)
 	}
 
-	go useCase.sendVerificationEmail(user)
+	go queueVerificationEmail(useCase.producerFactory, user)
 	return &appmodel.RegisterUserResponse{
 		ID:         user.ID,
 		Email:      *user.Email,
@@ -59,11 +63,11 @@ func (useCase *RegisterUserUseCase) Execute(
 	}, nil
 }
 
-func (useCase *RegisterUserUseCase) sendVerificationEmail(user *model.User) {
-	frontendUrl := config.GetAppConfig().FrontendUrl
+func doQueueVerificationEmail(producerFactory kafka.ProducerFactory, user *model.User) {
+	appConfig := config.GetAppConfig()
 	verificationLink := fmt.Sprintf(
 		"%s/verify-account?userId=%s&token=%s",
-		frontendUrl,
+		appConfig.FrontendUrl,
 		user.ID,
 		*user.VerificationToken,
 	)
@@ -88,20 +92,35 @@ func (useCase *RegisterUserUseCase) sendVerificationEmail(user *model.User) {
 			Signature: "Regards",
 		},
 	}
-	body, err := emailutils.GenerateEmailHtml(emailTemplate)
+	content, err := emailtemplateadptr.GenerateEmailHtml(emailTemplate)
 	if err != nil {
-		log.Print(err)
+		slog.Error("Error generating email body as HTML:", "error", err)
 		return
 	}
 
-	emailConfig := email.EmailSendingConfig{
+	producer, err := producerFactory.NewProducer(map[string]any{
+		"bootstrap.servers": appConfig.KafkaBootstrapServers,
+		"retries":           3,
+		"retry.backoff.ms":  1000,
+	})
+	if err != nil {
+		slog.Error("Error creating kafka producer", "error", err)
+		return
+	}
+
+	payload, err := json.Marshal(kafka.EmailSendindRequestedPayload{
 		To:      *user.Email,
 		Subject: "Trackr | Verify your account",
-		Body:    body,
-	}
-	err = useCase.emailService.SendEmail(emailConfig)
+		Content: content,
+	})
 	if err != nil {
-		log.Print(err)
+		slog.Error("Error marshalling email sending payload", "error", err)
+		return
+	}
+	message := kafka.Message{Value: payload}
+	err = producer.Produce("email-sending-requested", message)
+	if err != nil {
+		slog.Error("Error producing kafka message to send email", "error", err)
 		return
 	}
 }

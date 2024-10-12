@@ -1,9 +1,9 @@
 package rest
 
 import (
-	"github.com/RuanScherer/journey-track-api/adapters/rest"
+	"github.com/RuanScherer/journey-track-api/adapters/restadptr"
 )
 
 func StartAPI() {
-	rest.StartServer()
+	restadptr.StartServer()
 }

@@ -1,11 +1,13 @@
 package usecase
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/RuanScherer/journey-track-api/adapters/emailtemplate"
-	"github.com/RuanScherer/journey-track-api/application/email"
+	"log/slog"
+
+	"github.com/RuanScherer/journey-track-api/adapters/emailtemplateadptr"
+	"github.com/RuanScherer/journey-track-api/application/kafka"
 	"github.com/RuanScherer/journey-track-api/application/repository"
-	"log"
 
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/config"
@@ -13,18 +15,20 @@ import (
 	"github.com/matcornic/hermes/v2"
 )
 
+var queuePasswordResetEmail = doQueuePasswordResetEmail
+
 type RequestUserPasswordResetUseCase struct {
-	userRepository repository.UserRepository
-	emailService   email.EmailService
+	userRepository  repository.UserRepository
+	producerFactory kafka.ProducerFactory
 }
 
 func NewRequestUserPasswordResetUseCase(
 	userRepository repository.UserRepository,
-	emailService email.EmailService,
+	producerFactory kafka.ProducerFactory,
 ) *RequestUserPasswordResetUseCase {
 	return &RequestUserPasswordResetUseCase{
 		userRepository,
-		emailService,
+		producerFactory,
 	}
 }
 
@@ -40,15 +44,15 @@ func (useCase *RequestUserPasswordResetUseCase) Execute(req *appmodel.RequestPas
 		return appmodel.NewAppError("unable_to_complete", "unable to complete the request", appmodel.ErrorTypeDatabase)
 	}
 
-	go useCase.sendPasswordResetEmail(user)
+	go queuePasswordResetEmail(useCase.producerFactory, user)
 	return nil
 }
 
-func (useCase *RequestUserPasswordResetUseCase) sendPasswordResetEmail(user *model.User) {
-	frontendUrl := config.GetAppConfig().FrontendUrl
+func doQueuePasswordResetEmail(producerFactory kafka.ProducerFactory, user *model.User) {
+	appConfig := config.GetAppConfig()
 	passwordResetLink := fmt.Sprintf(
 		"%s/reset-password?userId=%s&token=%s",
-		frontendUrl,
+		appConfig.FrontendUrl,
 		user.ID,
 		*user.PasswordResetToken,
 	)
@@ -73,20 +77,35 @@ func (useCase *RequestUserPasswordResetUseCase) sendPasswordResetEmail(user *mod
 			Signature: "Regards",
 		},
 	}
-	body, err := emailtemplate.GenerateEmailHtml(emailTemplate)
+	content, err := emailtemplateadptr.GenerateEmailHtml(emailTemplate)
 	if err != nil {
-		log.Print(err)
+		slog.Error("Error generating email body as HTML", "error", err)
 		return
 	}
 
-	emailConfig := email.EmailSendingConfig{
+	producer, err := producerFactory.NewProducer(map[string]any{
+		"bootstrap.servers": appConfig.KafkaBootstrapServers,
+		"retries":           3,
+		"retry.backoff.ms":  1000,
+	})
+	if err != nil {
+		slog.Error("Error setting kafka producer config", "error", err)
+		return
+	}
+
+	payload, err := json.Marshal(kafka.EmailSendindRequestedPayload{
 		To:      *user.Email,
 		Subject: "Trackr | Reset your password",
-		Body:    body,
-	}
-	err = useCase.emailService.SendEmail(emailConfig)
+		Content: content,
+	})
 	if err != nil {
-		log.Print(err)
+		slog.Error("Error marshalling email sending payload", "error", err)
+		return
+	}
+	message := kafka.Message{Value: payload}
+	err = producer.Produce("email-sending-requested", message)
+	if err != nil {
+		slog.Error("Error producing kafka message to send email", "error", err)
 		return
 	}
 }

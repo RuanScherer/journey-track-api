@@ -2,15 +2,16 @@ package usecase
 
 import (
 	"errors"
-	"github.com/RuanScherer/journey-track-api/application/email"
+	"testing"
+
 	"github.com/RuanScherer/journey-track-api/application/factory"
+	"github.com/RuanScherer/journey-track-api/application/kafka"
 	"github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/repository"
 	domainmodel "github.com/RuanScherer/journey-track-api/domain/model"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 	"gorm.io/gorm"
-	"testing"
 )
 
 func TestInviteProjectMembersUseCase_Execute(t *testing.T) {
@@ -18,12 +19,12 @@ func TestInviteProjectMembersUseCase_Execute(t *testing.T) {
 	projectRepositoryMock := repository.NewMockProjectRepository(ctrl)
 	userRepositoryMock := repository.NewMockUserRepository(ctrl)
 	projectInviteRepositoryMock := repository.NewMockProjectInviteRepository(ctrl)
-	emailServiceMock := email.NewMockEmailService(ctrl)
+	producerFactory := kafka.NewMockProducerFactory(ctrl)
 	useCase := NewInviteProjectMembersUseCase(
 		projectRepositoryMock,
 		userRepositoryMock,
 		projectInviteRepositoryMock,
-		emailServiceMock,
+		producerFactory,
 	)
 
 	req := &model.InviteProjectMembersRequest{
@@ -178,17 +179,17 @@ func TestInviteProjectMembersUseCase_Execute(t *testing.T) {
 	assert.Equal(t, invitations[1].Status, existentInvitation.Status)
 }
 
-func TestInviteProjectMembersUseCase_sendProjectInviteEmail(t *testing.T) {
+func TestInviteProjectMembersUseCase_queueProjectInviteEmail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	projectRepositoryMock := repository.NewMockProjectRepository(ctrl)
 	userRepositoryMock := repository.NewMockUserRepository(ctrl)
 	projectInviteRepositoryMock := repository.NewMockProjectInviteRepository(ctrl)
-	emailServiceMock := email.NewMockEmailService(ctrl)
+	producerFactoryMock := kafka.NewMockProducerFactory(ctrl)
 	useCase := NewInviteProjectMembersUseCase(
 		projectRepositoryMock,
 		userRepositoryMock,
 		projectInviteRepositoryMock,
-		emailServiceMock,
+		producerFactoryMock,
 	)
 
 	project, _ := factory.NewProjectWithDefaultOwner("fake project")
@@ -200,27 +201,22 @@ func TestInviteProjectMembersUseCase_sendProjectInviteEmail(t *testing.T) {
 		FindById(invitation.ID).
 		Return(nil, errors.New("unexpected error"))
 
-	useCase.sendProjectInviteEmail(invitation.ID, user.Name)
+	useCase.queueProjectInviteEmail(invitation.ID, user.Name)
 
 	projectInviteRepositoryMock.
 		EXPECT().
 		FindById(invitation.ID).
 		Return(invitation, nil)
-	emailServiceMock.
-		EXPECT().
-		SendEmail(gomock.Any()).
-		Return(errors.New("unexpected error"))
 
-	useCase.sendProjectInviteEmail(invitation.ID, user.Name)
-
-	projectInviteRepositoryMock.
+	producerMock := kafka.NewMockProducer(ctrl)
+	producerFactoryMock.
 		EXPECT().
-		FindById(invitation.ID).
-		Return(invitation, nil)
-	emailServiceMock.
+		NewProducer(gomock.Any()).
+		Return(producerMock, nil)
+	producerMock.
 		EXPECT().
-		SendEmail(gomock.Any()).
+		Produce(gomock.Any(), gomock.Any()).
 		Return(nil)
 
-	useCase.sendProjectInviteEmail(invitation.ID, user.Name)
+	useCase.queueProjectInviteEmail(invitation.ID, user.Name)
 }

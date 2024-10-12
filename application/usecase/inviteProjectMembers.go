@@ -1,12 +1,15 @@
 package usecase
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/RuanScherer/journey-track-api/adapters/emailtemplate"
-	"github.com/RuanScherer/journey-track-api/application/email"
-	repository2 "github.com/RuanScherer/journey-track-api/application/repository"
 	"log"
+	"log/slog"
+
+	"github.com/RuanScherer/journey-track-api/adapters/emailtemplateadptr"
+	"github.com/RuanScherer/journey-track-api/application/kafka"
+	"github.com/RuanScherer/journey-track-api/application/repository"
 
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/config"
@@ -16,23 +19,23 @@ import (
 )
 
 type InviteProjectMembersUseCase struct {
-	projectRepository       repository2.ProjectRepository
-	userRepository          repository2.UserRepository
-	projectInviteRepository repository2.ProjectInviteRepository
-	emailService            email.EmailService
+	projectRepository       repository.ProjectRepository
+	userRepository          repository.UserRepository
+	projectInviteRepository repository.ProjectInviteRepository
+	producerFactory         kafka.ProducerFactory
 }
 
 func NewInviteProjectMembersUseCase(
-	projectRepository repository2.ProjectRepository,
-	userRepository repository2.UserRepository,
-	projectInviteRepository repository2.ProjectInviteRepository,
-	emailService email.EmailService,
+	projectRepository repository.ProjectRepository,
+	userRepository repository.UserRepository,
+	projectInviteRepository repository.ProjectInviteRepository,
+	producerFactory kafka.ProducerFactory,
 ) *InviteProjectMembersUseCase {
 	return &InviteProjectMembersUseCase{
 		projectRepository,
 		userRepository,
 		projectInviteRepository,
-		emailService,
+		producerFactory,
 	}
 }
 
@@ -151,26 +154,26 @@ func (useCase *InviteProjectMembersUseCase) generateInvite(
 
 func (useCase *InviteProjectMembersUseCase) sendProjectInviteEmails(invites []*model.ProjectInvite, actor *model.User) {
 	for _, invite := range invites {
-		go useCase.sendProjectInviteEmail(invite.ID, actor.Name)
+		go useCase.queueProjectInviteEmail(invite.ID, actor.Name)
 	}
 }
 
-func (useCase *InviteProjectMembersUseCase) sendProjectInviteEmail(inviteId string, issuerName string) {
+func (useCase *InviteProjectMembersUseCase) queueProjectInviteEmail(inviteId string, issuerName string) {
 	invite, err := useCase.projectInviteRepository.FindById(inviteId)
 	if err != nil {
-		log.Print(err)
+		slog.Error("Unable to find invite to send email", "error", err)
 		return
 	}
 
-	frontendUrl := config.GetAppConfig().FrontendUrl
+	appConfig := config.GetAppConfig()
 	answerInviteLink := fmt.Sprintf(
 		"%s/answer-invitation?projectId=%s&token=%s",
-		frontendUrl,
+		appConfig.FrontendUrl,
 		invite.ProjectID,
 		*invite.Token,
 	)
 
-	emailConfig := hermes.Email{
+	emailTemplate := hermes.Email{
 		Body: hermes.Body{
 			Name:  invite.User.Name,
 			Title: "You have been invited to a project",
@@ -191,19 +194,35 @@ func (useCase *InviteProjectMembersUseCase) sendProjectInviteEmail(inviteId stri
 			Signature: "Regards",
 		},
 	}
-	body, err := emailtemplate.GenerateEmailHtml(emailConfig)
+	content, err := emailtemplateadptr.GenerateEmailHtml(emailTemplate)
 	if err != nil {
 		log.Print(err)
 		return
 	}
 
-	err = useCase.emailService.SendEmail(email.EmailSendingConfig{
-		To:      *invite.User.Email,
-		Subject: "Trackr | You have been invited to a project",
-		Body:    body,
+	producer, err := useCase.producerFactory.NewProducer(map[string]any{
+		"bootstrap.servers": appConfig.KafkaBootstrapServers,
+		"retries":           3,
+		"retry.backoff.ms":  1000,
 	})
 	if err != nil {
-		log.Print(err)
+		slog.Error("Error setting kafka producer config", "error", err)
+		return
+	}
+
+	payload, err := json.Marshal(kafka.EmailSendindRequestedPayload{
+		To:      *invite.User.Email,
+		Subject: "Trackr | You have been invited to a project",
+		Content: content,
+	})
+	if err != nil {
+		slog.Error("Error marshalling email sending payload", "error", err)
+		return
+	}
+	message := kafka.Message{Value: payload}
+	err = producer.Produce("email-sending-requested", message)
+	if err != nil {
+		slog.Error("Error producing kafka message to send email", "error", err)
 		return
 	}
 }

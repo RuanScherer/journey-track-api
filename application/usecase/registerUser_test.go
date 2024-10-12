@@ -2,21 +2,24 @@ package usecase
 
 import (
 	"errors"
-	"github.com/RuanScherer/journey-track-api/application/email"
+	"testing"
+
+	"github.com/RuanScherer/journey-track-api/application/kafka"
 	appmodel "github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/repository"
 	"github.com/RuanScherer/journey-track-api/domain/model"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 	"gorm.io/gorm"
-	"testing"
 )
 
 func TestRegisterUserUseCase_Execute(t *testing.T) {
+	queueVerificationEmail = func(producerFactory kafka.ProducerFactory, user *model.User) {}
+
 	ctrl := gomock.NewController(t)
 	userRepositoryMock := repository.NewMockUserRepository(ctrl)
-	emailServiceMock := email.NewMockEmailService(ctrl)
-	useCase := NewRegisterUserUseCase(userRepositoryMock, emailServiceMock)
+	producerFactoryMock := kafka.NewMockProducerFactory(ctrl)
+	useCase := NewRegisterUserUseCase(userRepositoryMock, producerFactoryMock)
 
 	req := &appmodel.RegisterUserRequest{
 		Email:    "john.doe@gmail.com",
@@ -55,10 +58,6 @@ func TestRegisterUserUseCase_Execute(t *testing.T) {
 		Register(gomock.Any()).
 		AnyTimes().
 		Return(nil)
-	emailServiceMock.
-		EXPECT().
-		SendEmail(gomock.Any()).
-		AnyTimes()
 
 	res, err = useCase.Execute(req)
 	assert.Nil(t, err)
@@ -69,17 +68,21 @@ func TestRegisterUserUseCase_Execute(t *testing.T) {
 	assert.False(t, res.IsVerified)
 }
 
-func TestRegisterUserUseCase_sendVerificationEmail(t *testing.T) {
+func TestRegisterUserUseCase_queueVerificationEmail(t *testing.T) {
+	var queueVerificationEmail = doQueueVerificationEmail
 	ctrl := gomock.NewController(t)
-	userRepositoryMock := repository.NewMockUserRepository(ctrl)
-	emailServiceMock := email.NewMockEmailService(ctrl)
-	useCase := NewRegisterUserUseCase(userRepositoryMock, emailServiceMock)
+	producerFactoryMock := kafka.NewMockProducerFactory(ctrl)
+
+	producerMock := kafka.NewMockProducer(ctrl)
+	producerFactoryMock.
+		EXPECT().
+		NewProducer(gomock.Any()).
+		Return(producerMock, nil)
+	producerMock.
+		EXPECT().
+		Produce(gomock.Any(), gomock.Any()).
+		Return(nil)
 
 	user, _ := model.NewUser("john.doe@gmail.com", "John Doe", "fake-password")
-	emailServiceMock.
-		EXPECT().
-		SendEmail(gomock.Any()).
-		Return(errors.New("unable to send email"))
-
-	useCase.sendVerificationEmail(user)
+	queueVerificationEmail(producerFactoryMock, user)
 }

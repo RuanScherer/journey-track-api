@@ -2,20 +2,24 @@ package usecase
 
 import (
 	"errors"
-	"github.com/RuanScherer/journey-track-api/application/email"
+	"testing"
+
 	"github.com/RuanScherer/journey-track-api/application/factory"
+	"github.com/RuanScherer/journey-track-api/application/kafka"
 	"github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/repository"
+	domainmodel "github.com/RuanScherer/journey-track-api/domain/model"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
-	"testing"
 )
 
 func TestRequestUserPasswordResetUseCase_Execute(t *testing.T) {
+	queuePasswordResetEmail = func(producerFactory kafka.ProducerFactory, user *domainmodel.User) {}
+
 	ctrl := gomock.NewController(t)
 	userRepositoryMock := repository.NewMockUserRepository(ctrl)
-	emailServiceMock := email.NewMockEmailService(ctrl)
-	useCase := NewRequestUserPasswordResetUseCase(userRepositoryMock, emailServiceMock)
+	producerFactoryMock := kafka.NewMockProducerFactory(ctrl)
+	useCase := NewRequestUserPasswordResetUseCase(userRepositoryMock, producerFactoryMock)
 
 	req := &model.RequestPasswordResetRequest{
 		Email: "john.doe@gmail.com",
@@ -50,27 +54,29 @@ func TestRequestUserPasswordResetUseCase_Execute(t *testing.T) {
 		Save(user).
 		AnyTimes().
 		Return(nil)
-	emailServiceMock.
-		EXPECT().
-		SendEmail(gomock.Any()).
-		AnyTimes()
 
 	err = useCase.Execute(req)
 	assert.Nil(t, err)
 }
 
 func TestRequestUserPasswordResetUseCase_sendPasswordResetEmail(t *testing.T) {
+	queuePasswordResetEmail = doQueuePasswordResetEmail
+
 	ctrl := gomock.NewController(t)
-	userRepositoryMock := repository.NewMockUserRepository(ctrl)
-	emailServiceMock := email.NewMockEmailService(ctrl)
-	useCase := NewRequestUserPasswordResetUseCase(userRepositoryMock, emailServiceMock)
+	producerFactoryMock := kafka.NewMockProducerFactory(ctrl)
 
 	user, _ := factory.NewVerifiedUser("john.doe@gmail.com", "John Doe", "fake-password")
 	user.RequestPasswordReset()
 
-	emailServiceMock.
+	producerMock := kafka.NewMockProducer(ctrl)
+	producerFactoryMock.
 		EXPECT().
-		SendEmail(gomock.Any()).
-		Return(errors.New("unable to send email"))
-	useCase.sendPasswordResetEmail(user)
+		NewProducer(gomock.Any()).
+		Return(producerMock, nil)
+	producerMock.
+		EXPECT().
+		Produce(gomock.Any(), gomock.Any()).
+		Return(nil)
+
+	queuePasswordResetEmail(producerFactoryMock, user)
 }

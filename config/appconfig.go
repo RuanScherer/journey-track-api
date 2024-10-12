@@ -13,10 +13,7 @@ type AppConfig struct {
 
 	JwtSecret string `mapstructure:"JWT_SECRET"`
 
-	EmailSmtpHost     string `mapstructure:"EMAIL_SMTP_HOST"`
-	EmailSmtpPort     uint   `mapstructure:"EMAIL_SMTP_PORT"`
-	EmailSmtpUsername string `mapstructure:"EMAIL_SMTP_USERNAME"`
-	EmailSmtpPassword string `mapstructure:"EMAIL_SMTP_PASSWORD"`
+	KafkaBootstrapServers string `mapstructure:"KAFKA_BOOTSTRAP_SERVERS"`
 }
 
 var config *AppConfig

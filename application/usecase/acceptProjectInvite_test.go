@@ -2,6 +2,8 @@ package usecase
 
 import (
 	"errors"
+	"testing"
+
 	"github.com/RuanScherer/journey-track-api/application/factory"
 	"github.com/RuanScherer/journey-track-api/application/model"
 	"github.com/RuanScherer/journey-track-api/application/repository"
@@ -9,7 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 	"gorm.io/gorm"
-	"testing"
 )
 
 func TestAcceptProjectInviteUseCase_Execute(t *testing.T) {
@@ -151,7 +152,7 @@ func TestAcceptProjectInviteUseCase_Execute(t *testing.T) {
 	assert.Error(t, err, "(database) [unable_to_save_project_changes] unexpected error")
 
 	project, _ = factory.NewProjectWithDefaultOwner("fake project")
-	invitation, err = domainmodel.NewProjectInvite(project, user)
+	invitation, _ = domainmodel.NewProjectInvite(project, user)
 	req.InviteToken = *invitation.Token
 	projectInviteMockRepository.
 		EXPECT().
