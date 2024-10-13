@@ -7,7 +7,6 @@ require (
 	github.com/confluentinc/confluent-kafka-go/v2 v2.3.0
 	github.com/gofiber/fiber/v2 v2.51.0
 	github.com/golang-jwt/jwt/v5 v5.2.0
-	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
 	github.com/matcornic/hermes/v2 v2.1.0
 	github.com/spf13/viper v1.18.2

@@ -7,6 +7,7 @@ type ProjectRepository interface {
 	Save(project *model.Project) error
 	FindByMemberId(memberId string) ([]*model.Project, error)
 	FindById(id string) (*model.Project, error)
+	FindByToken(token string) (*model.Project, error)
 	FindMembersCountAndEventsCountById(id string) (*ProjectInvitesCountAndEventsCount, error)
 	DeleteById(id string) error
 	HasMember(projectID, memberID string) (bool, error)

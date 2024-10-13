@@ -20,6 +20,9 @@ func RegisterRoutes(app *fiber.App) {
 
 	v1.Get("/projects/:projectId/invites/:token", handler.NewShowInvitationByProjectAndTokenHandler().Handle)
 
+	// TODO: improve endpoint by requiring some kind of authentication
+	v1.Post("/projects/:projectToken/events", handler.NewTrackEventHandler().Handle)
+
 	// auth middleware - separate protected routes
 	api.Use(middleware.HandleAuth)
 

@@ -49,6 +49,18 @@ func (repository *ProjectPostgresRepository) FindById(id string) (*model.Project
 	return project, nil
 }
 
+func (repository *ProjectPostgresRepository) FindByToken(token string) (*model.Project, error) {
+	project := &model.Project{}
+	err := repository.DB.
+		Where("token = ?", token).
+		First(project).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return project, nil
+}
+
 func (repository *ProjectPostgresRepository) FindMembersCountAndEventsCountById(
 	id string,
 ) (*domainrepositories.ProjectInvitesCountAndEventsCount, error) {
